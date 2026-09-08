@@ -83,22 +83,28 @@ fi
 # ---------- 4. Sao lưu ----------
 STAMP="$(date +%Y%m%d-%H%M%S)"
 say ""
+REPLACED_OTHER=0
 if [ -e "$DEST" ] || [ -L "$DEST" ]; then
     if [ -L "$DEST" ] && [ "$(readlink "$DEST")" = "$SRC_DIR" ]; then
         say "Đã cài sẵn   : $DEST -> $SRC_DIR"
     else
         say "Sao lưu      : $DEST -> $DEST.bak.$STAMP"
         run mv "$DEST" "$DEST.bak.$STAMP"
+        REPLACED_OTHER=1
     fi
 fi
 
-# Dữ liệu plugin cũ có thể xung đột — dọn luôn cho chắc.
-for d in "${XDG_DATA_HOME:-$HOME/.local/share}/nvim" "${XDG_STATE_HOME:-$HOME/.local/state}/nvim"; do
-    if [ -d "$d" ]; then
-        say "Sao lưu      : $d -> $d.bak.$STAMP"
-        run mv "$d" "$d.bak.$STAMP"
-    fi
-done
+# Dữ liệu plugin của MỘT config khác có thể xung đột (phiên bản plugin lệch,
+# parser treesitter biên dịch bằng API cũ). Chỉ dọn khi vừa thay thế config khác;
+# cài lại chính config này thì giữ nguyên để khỏi tải lại từ đầu.
+if [ "$REPLACED_OTHER" -eq 1 ]; then
+    for d in "${XDG_DATA_HOME:-$HOME/.local/share}/nvim" "${XDG_STATE_HOME:-$HOME/.local/state}/nvim"; do
+        if [ -d "$d" ]; then
+            say "Sao lưu      : $d -> $d.bak.$STAMP"
+            run mv "$d" "$d.bak.$STAMP"
+        fi
+    done
+fi
 
 # ---------- 5. Cài ----------
 if [ ! -e "$DEST" ]; then
