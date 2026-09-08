@@ -198,6 +198,7 @@ Bấm `i` vào chế độ Insert là trả về Markdown thô để sửa; tho�
 | `:Lazy update` | Cập nhật plugin (nhớ commit lại `lazy-lock.json`) |
 | `:Mason` | Bảng quản lý LSP / formatter / linter |
 | `:TSUpdate` | Cập nhật parser treesitter |
+| `:TSInstallAll` | Cài lại toàn bộ parser trong danh sách, chờ tới khi xong |
 | **`:checkhealth`** | **Soi xem còn thiếu gì** — chạy khi có gì đó không hoạt động |
 | `:LspInfo` | Xem LSP nào đang chạy cho file hiện tại |
 | `:messages` | Xem lại các thông báo đã trôi qua |
@@ -208,8 +209,10 @@ Bấm `i` vào chế độ Insert là trả về Markdown thô để sửa; tho�
 
 | Triệu chứng | Nguyên nhân thường gặp |
 |---|---|
-| `module 'nvim-treesitter.configs' not found` | Thiếu `branch = 'master'` trong `lua/plugins/treesitter.lua`. Nhánh mặc định của nvim-treesitter đã chuyển sang `main` — bản viết lại bỏ module này |
-| `attempt to call method 'range' (a nil value)` khi mở file `.md` | Nhánh `master` đã lưu trữ, directive `set-lang-from-info-string!` viết theo API cũ (`match[id]` là một node; từ Neovim 0.11 là danh sách node). `treesitter.lua` đã vá sẵn — nếu lỗi quay lại thì đoạn vá bị mất |
+| `ENOENT ... (cmd): 'tree-sitter'` | Chưa có tree-sitter CLI. Chạy `:MasonInstall tree-sitter-cli` rồi `:TSInstallAll` |
+| `module 'nvim-treesitter.configs' not found` | Ai đó đổi treesitter về nhánh `master`. Config này dùng `main`, không có module đó |
+| `attempt to call method 'range' (a nil value)` khi mở `.md` | Dấu hiệu đang chạy nhánh `master` trên Neovim ≥ 0.11. Kiểm tra `branch = 'main'` trong `treesitter.lua` |
+| Không tô màu cú pháp | Parser chưa cài. `:TSInstallAll`, hoặc `:checkhealth vim.treesitter` |
 | LSP JavaScript không cài được | Chưa có `node` / `npm` |
 | Parser treesitter không biên dịch | Chưa có `gcc` |
 | `Too many rounds of missing plugins` | Một plugin build lỗi lặp vô hạn. Xem `:Lazy` để biết cái nào |

@@ -41,7 +41,7 @@ say "Hệ điều hành : $PLATFORM"
 # ---------- 2. Neovim ----------
 if ! command -v nvim >/dev/null 2>&1; then
     say ""
-    say "LỖI: chưa cài Neovim. Cần bản 0.11 trở lên."
+    say "LỖI: chưa cài Neovim. Cần bản 0.12 trở lên."
     say "  macOS        : brew install neovim"
     say "  Ubuntu/Debian: sudo apt install neovim   (bản apt thường cũ — cân nhắc tải bản release)"
     say "  Arch         : sudo pacman -S neovim"
@@ -53,8 +53,10 @@ say "Neovim       : $NVIM_VER"
 case "$NVIM_VER" in
     *v0.[0-9].*)
         MINOR="$(printf '%s' "$NVIM_VER" | sed -n 's/.*v0\.\([0-9]*\)\..*/\1/p')"
-        if [ -n "$MINOR" ] && [ "$MINOR" -lt 11 ] 2>/dev/null; then
-            say "  CẢNH BÁO: config này cần Neovim >= 0.11 (dùng API vim.lsp.config)."
+        if [ -n "$MINOR" ] && [ "$MINOR" -lt 12 ] 2>/dev/null; then
+            say "  CẢNH BÁO: config này cần Neovim >= 0.12."
+            say "    - vim.lsp.config()          cần >= 0.11"
+            say "    - nvim-treesitter nhánh main cần >= 0.12"
         fi ;;
 esac
 
@@ -62,7 +64,7 @@ esac
 say ""
 say "Công cụ đi kèm:"
 missing=""
-for tool in git gcc curl unzip node npm; do
+for tool in git gcc curl unzip tar node npm; do
     if command -v "$tool" >/dev/null 2>&1; then
         printf '  có     %s\n' "$tool"
     else
@@ -73,8 +75,8 @@ done
 if [ -n "$missing" ]; then
     say ""
     say "  Thiếu:$missing"
-    say "    git, curl, unzip  → lazy.nvim và Mason cần để tải"
-    say "    gcc               → treesitter cần để biên dịch parser"
+    say "    git, curl, unzip, tar → lazy.nvim, Mason và treesitter cần để tải"
+    say "    gcc                  → treesitter cần để biên dịch parser"
     say "    node, npm         → các LSP viết bằng JavaScript (typescript, json, css,"
     say "                        html, tailwind, eslint_d, prettier) sẽ KHÔNG cài được"
     say "  Vẫn cài tiếp được, nhưng các phần trên sẽ báo lỗi."
@@ -121,12 +123,17 @@ fi
 # ---------- 6. Tải plugin ----------
 if [ "$DRY" -eq 0 ]; then
     say ""
-    say "Tải plugin (lần đầu mất vài phút)..."
+    say "1/3  Tải plugin (lần đầu mất vài phút)..."
     nvim --headless "+Lazy! sync" +qa 2>/dev/null || true
-    say "Cài LSP, formatter, linter qua Mason..."
+
+    # Mason PHẢI chạy trước treesitter: nvim-treesitter nhánh 'main' biên dịch
+    # parser bằng tree-sitter CLI, mà CLI đó do Mason cài. Chạy ngược thứ tự thì
+    # mọi parser đều lỗi ENOENT ... (cmd): 'tree-sitter'.
+    say "2/3  Cài LSP, formatter, linter và tree-sitter CLI qua Mason..."
     nvim --headless "+MasonToolsUpdateSync" +qa 2>/dev/null || true
-    say "Biên dịch parser treesitter..."
-    nvim --headless "+TSUpdateSync" +qa 2>/dev/null || true
+
+    say "3/3  Biên dịch parser treesitter (mất vài phút)..."
+    nvim --headless "+TSInstallAll" +qa 2>/dev/null || true
 fi
 
 say ""

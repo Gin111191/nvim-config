@@ -182,6 +182,11 @@ return {
     -- Ensure the servers and tools above are installed
     local ensure_installed = vim.tbl_keys(servers or {})
     vim.list_extend(ensure_installed, {
+      -- nvim-treesitter nhánh 'main' biên dịch parser bằng tree-sitter CLI
+      -- (nhánh 'master' cũ gọi thẳng gcc). README của nó yêu cầu >= 0.26.1 và
+      -- ghi rõ "không cài qua npm" — Mason tải bản binary dựng sẵn nên hợp lệ.
+      -- Thiếu nó thì mọi parser đều lỗi: ENOENT ... (cmd): 'tree-sitter'
+      'tree-sitter-cli',
       'stylua', -- Used to format Lua code
     })
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }

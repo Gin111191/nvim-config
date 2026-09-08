@@ -26,9 +26,10 @@ Xem trước không thay đổi gì: `./install.sh --dry-run`
 
 | | Bắt buộc? | Thiếu thì sao |
 |---|---|---|
-| **Neovim ≥ 0.11** | Có | Config dùng API `vim.lsp.config()` mới |
-| `git`, `curl`, `unzip` | Có | lazy.nvim và Mason không tải được |
+| **Neovim ≥ 0.12** | Có | `vim.lsp.config()` cần ≥ 0.11; **nvim-treesitter nhánh `main` cần ≥ 0.12** |
+| `git`, `curl`, `unzip`, `tar` | Có | lazy.nvim, Mason và treesitter không tải được |
 | `gcc` | Có | Không biên dịch được parser treesitter |
+| `tree-sitter` CLI ≥ 0.26.1 | Có | Nhánh `main` biên dịch parser bằng CLI này. **Mason tự cài** — không cần làm gì |
 | **`node`, `npm`** | Nên có | Các LSP viết bằng JS (typescript, json, css, html, tailwind, eslint_d, prettier) **không cài được** |
 | **Nerd Font** | Nên có | Icon hiện thành ô vuông |
 | Terminal true color | Nên có | Màu sai |
@@ -67,12 +68,28 @@ lazy-lock.json              KHOÁ PHIÊN BẢN — đừng xoá, xem mục dư�
 ### Đừng xoá `lazy-lock.json`
 
 File này ghim từng plugin ở đúng commit đã chạy được. Xoá đi rồi cài lại trên máy khác
-sẽ lấy bản mới nhất của mọi plugin — và `nvim-treesitter` đã **đổi nhánh mặc định sang
-`main`**, bản viết lại bỏ hẳn module `nvim-treesitter.configs` mà config này gọi, nên
-nvim báo lỗi mỗi lần mở.
+sẽ lấy bản mới nhất của mọi plugin, và không có gì bảo đảm chúng còn hợp nhau.
+Chạy `:Lazy update` xong nhớ commit lại file này.
 
-Config đã ghim `branch = 'master'` thẳng trong `lua/plugins/treesitter.lua` để phòng,
-nhưng `lazy-lock.json` vẫn là lớp bảo vệ chính. Chạy `:Lazy update` xong nhớ commit lại file này.
+### Treesitter dùng nhánh `main`
+
+`nvim-treesitter` có hai nhánh, khác nhau hoàn toàn:
+
+| | `master` | `main` |
+|---|---|---|
+| Trạng thái | **Đã lưu trữ**, commit cuối 2026-03-23 | Đang bảo trì |
+| Neovim | ≤ 0.10 | **≥ 0.12** |
+| Cấu hình | "modules": `ensure_installed`, `highlight`, `indent` | Tự gọi `install()` và `vim.treesitter.start()` |
+| Biên dịch parser | `gcc` trực tiếp | **`tree-sitter` CLI** |
+| Parser nằm ở | thư mục plugin | `~/.local/share/nvim/site/parser` |
+
+Config này dùng `main`. Lý do: nhánh `master` đăng ký directive
+`set-lang-from-info-string!` theo API cũ (`match[id]` là MỘT node), nhưng từ Neovim 0.11
+`match[id]` là DANH SÁCH node. Hậu quả là **mọi lần parse markdown đều vỡ** với
+`attempt to call method 'range' (a nil value)` — hỏng cả tô màu trong khối ```code
+lẫn render-markdown. Nhánh `main` bỏ hẳn file gây lỗi và dùng query có sẵn của Neovim.
+
+Đổi danh sách ngôn ngữ: sửa `LANGUAGES` ở đầu `lua/plugins/treesitter.lua`, rồi `:TSInstallAll`.
 
 ---
 
@@ -104,7 +121,7 @@ sửa cả hai.
 | `bufferline` | Vạch ngăn `#434C5E` (màu Nord) | `#3D4A6B` (`selection_bg` của Dusk-Navy) |
 | `nvim-treesitter` | Chỉ ghim qua `lazy-lock.json` | Ghim thêm `branch = 'master'` ngay trong spec |
 | Markdown | — | **render-markdown.nvim** dựng hình file `.md` ngay trong nvim |
-| `nvim-treesitter` markdown | Vỡ trên Neovim ≥ 0.11 | **Đã vá** directive `set-lang-from-info-string!` (xem `treesitter.lua`) |
+| `nvim-treesitter` | Nhánh `master` (đã lưu trữ, vỡ khi parse markdown trên Neovim ≥ 0.11) | **Nhánh `main`** — viết lại theo API mới, hết lỗi tận gốc |
 | `image.nvim` | Bật | **Tắt** — cần `luarocks`, thiếu thì lazy build lặp vô hạn rồi báo `Too many rounds of missing plugins`. Bật lại bằng `enabled = true` sau khi cài luarocks |
 | Cài đặt | Clone thủ công | `install.sh` đa nền tảng, có sao lưu và kiểm tra công cụ |
 | Tài liệu | README tiếng Anh | README + CHEATSHEET tiếng Việt |
