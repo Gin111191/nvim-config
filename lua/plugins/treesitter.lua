@@ -5,7 +5,6 @@ return { -- Highlight, edit, and navigate code
   -- Không có dòng này thì lỗi "module 'nvim-treesitter.configs' not found".
   branch = 'master',
   build = ':TSUpdate',
-  main = 'nvim-treesitter.configs', -- Sets main module to use for opts
   -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
   opts = {
     ensure_installed = {
@@ -47,10 +46,38 @@ return { -- Highlight, edit, and navigate code
     },
     indent = { enable = true, disable = { 'ruby' } },
   },
-  -- There are additional nvim-treesitter modules that you can use to interact
-  -- with nvim-treesitter. You should go explore a few and see what interests you:
-  --
-  --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-  --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-  --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+  config = function(_, opts)
+    require('nvim-treesitter.configs').setup(opts)
+
+    -- ── Vá lỗi tương thích của nhánh master ─────────────────────────────────
+    -- nvim-treesitter master đã LƯU TRỮ (commit cuối 2026-03-23) và đăng ký
+    -- directive `set-lang-from-info-string!` theo API cũ:
+    --
+    --     Neovim <= 0.10 :  match[id]  là MỘT TSNode
+    --     Neovim >= 0.11 :  match[id]  là DANH SÁCH TSNode
+    --
+    -- Hàm gốc (query_predicates.lua:141) truyền thẳng cái table đó vào
+    -- get_node_text; hàm này gọi node:range() -> "attempt to call method
+    -- 'range' (a nil value)", làm VỠ MỌI lần parse markdown.
+    --
+    -- Directive này được queries/markdown/injections.scm dùng để đoán ngôn ngữ
+    -- của khối ```lang. Vỡ nó là hỏng cả tô màu bên trong khối code lẫn mọi
+    -- plugin đụng tới injection của markdown (render-markdown.nvim chẳng hạn).
+    --
+    -- Xoá được đoạn này khi nào chuyển nvim-treesitter sang nhánh 'main'.
+    local ALIASES = { ex = 'elixir', pl = 'perl', sh = 'bash', uxn = 'uxntal', ts = 'typescript' }
+    vim.treesitter.query.add_directive('set-lang-from-info-string!', function(match, _, bufnr, pred, metadata)
+      local nodes = match[pred[2]]
+      -- Nhận cả hai dạng: TSNode đơn (API cũ) và danh sách TSNode (0.11+).
+      local node = nodes
+      if type(nodes) == 'table' and type(nodes.range) ~= 'function' then
+        node = nodes[#nodes]
+      end
+      if not node then
+        return
+      end
+      local alias = vim.treesitter.get_node_text(node, bufnr):lower()
+      metadata['injection.language'] = vim.filetype.match { filename = 'a.' .. alias } or ALIASES[alias] or alias
+    end, { force = true, all = false })
+  end,
 }

@@ -174,6 +174,22 @@ Nền để **trong suốt** cho gradient của WezTerm hiện xuyên qua.
 
 ---
 
+## Markdown
+
+Mở file `.md` là tự dựng hình: tiêu đề có icon và nền, `**đậm**` `*nghiêng*` `` `mã` `` ẩn dấu
+markup, gạch đầu dòng thành `●` `○`, checkbox thành `󰄱` `󰱒`, bảng vẽ khung `┌─┬─┐`,
+khối code có nhãn ngôn ngữ.
+
+Bấm `i` vào chế độ Insert là trả về Markdown thô để sửa; thoát ra lại dựng hình.
+
+| Lệnh | Việc |
+|---|---|
+| `:RenderMarkdown toggle` | Bật/tắt |
+| `:RenderMarkdown expand` | Hiện thô toàn bộ, kể cả ở Normal mode |
+| `:RenderMarkdown enable` / `disable` | Bật / tắt hẳn |
+
+---
+
 ## Lệnh bảo trì
 
 | Lệnh | Việc |
@@ -193,6 +209,7 @@ Nền để **trong suốt** cho gradient của WezTerm hiện xuyên qua.
 | Triệu chứng | Nguyên nhân thường gặp |
 |---|---|
 | `module 'nvim-treesitter.configs' not found` | Thiếu `branch = 'master'` trong `lua/plugins/treesitter.lua`. Nhánh mặc định của nvim-treesitter đã chuyển sang `main` — bản viết lại bỏ module này |
+| `attempt to call method 'range' (a nil value)` khi mở file `.md` | Nhánh `master` đã lưu trữ, directive `set-lang-from-info-string!` viết theo API cũ (`match[id]` là một node; từ Neovim 0.11 là danh sách node). `treesitter.lua` đã vá sẵn — nếu lỗi quay lại thì đoạn vá bị mất |
 | LSP JavaScript không cài được | Chưa có `node` / `npm` |
 | Parser treesitter không biên dịch | Chưa có `gcc` |
 | `Too many rounds of missing plugins` | Một plugin build lỗi lặp vô hạn. Xem `:Lazy` để biết cái nào |

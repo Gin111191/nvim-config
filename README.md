@@ -46,8 +46,9 @@ Xem trước không thay đổi gì: `./install.sh --dry-run`
 **Format & lint** — none-ls chạy prettier, eslint_d, shfmt khi lưu file.
 **Git** — gitsigns (dấu thay đổi ở cột trái) + fugitive (`:Git commit`).
 **Học phím** — which-key: bấm `Space` đợi 300ms là hiện bảng gợi ý.
+**Markdown** — render-markdown.nvim: mở file `.md` là tự dựng hình (tiêu đề, bảng, checkbox, khối code).
 
-43 plugin, ghim phiên bản trong `lazy-lock.json`.
+44 plugin, ghim phiên bản trong `lazy-lock.json`.
 
 ---
 
@@ -102,6 +103,8 @@ sửa cả hai.
 | `lualine` | `theme = 'nord'` | `theme = 'auto'` — bám theo colorscheme |
 | `bufferline` | Vạch ngăn `#434C5E` (màu Nord) | `#3D4A6B` (`selection_bg` của Dusk-Navy) |
 | `nvim-treesitter` | Chỉ ghim qua `lazy-lock.json` | Ghim thêm `branch = 'master'` ngay trong spec |
+| Markdown | — | **render-markdown.nvim** dựng hình file `.md` ngay trong nvim |
+| `nvim-treesitter` markdown | Vỡ trên Neovim ≥ 0.11 | **Đã vá** directive `set-lang-from-info-string!` (xem `treesitter.lua`) |
 | `image.nvim` | Bật | **Tắt** — cần `luarocks`, thiếu thì lazy build lặp vô hạn rồi báo `Too many rounds of missing plugins`. Bật lại bằng `enabled = true` sau khi cài luarocks |
 | Cài đặt | Clone thủ công | `install.sh` đa nền tảng, có sao lưu và kiểm tra công cụ |
 | Tài liệu | README tiếng Anh | README + CHEATSHEET tiếng Việt |
