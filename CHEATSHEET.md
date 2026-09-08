@@ -199,11 +199,35 @@ khối code có nhãn ngôn ngữ.
 
 Bấm `i` vào chế độ Insert là trả về Markdown thô để sửa; thoát ra lại dựng hình.
 
+### Vì sao chữ "biến mất" — và cách hiện lại
+
+Đây **không phải fold**, mà là *conceal*: plugin ẩn phần ký hiệu markdown đi và vẽ kết quả
+lên chỗ đó. `[Xem tài liệu](https://vi.du/rat/dai)` chỉ còn `󰌷 Xem tài liệu` — cái URL vẫn
+nằm nguyên trong file, chỉ là không hiện ra.
+
+Cách hiện lại phần thô, từ nhẹ đến mạnh:
+
+| Muốn | Làm |
+|---|---|
+| Xem thô **một dòng** | **Đưa con trỏ vào chính dòng đó** — dòng có con trỏ luôn hiện thô |
+| Thu lại | Di con trỏ sang dòng khác |
+| Xem thô **cả vùng quanh con trỏ** | `:RenderMarkdown expand` — mỗi lần gọi mở rộng thêm 1 dòng trên và 1 dòng dưới |
+| Thu vùng đó lại | `:RenderMarkdown contract` — mỗi lần thu 1 dòng, về 0 là dừng |
+| Xem thô **cả file** | `:RenderMarkdown toggle`, hoặc bấm `i` vào Insert mode |
+
+Cơ chế đằng sau là `anti_conceal` với `above = 0`, `below = 0` — nghĩa là chỉ đúng dòng đang
+đứng mới bỏ conceal. `expand`/`contract` cộng/trừ hai số đó (`contract` chặn sàn ở 0).
+
+### Toàn bộ lệnh
+
 | Lệnh | Việc |
 |---|---|
-| `:RenderMarkdown toggle` | Bật/tắt |
-| `:RenderMarkdown expand` | Hiện thô toàn bộ, kể cả ở Normal mode |
+| `:RenderMarkdown toggle` | Bật/tắt dựng hình cho toàn bộ |
+| `:RenderMarkdown expand` / `contract` | Nới / thu vùng hiện thô quanh con trỏ (±1 dòng mỗi lần) |
 | `:RenderMarkdown enable` / `disable` | Bật / tắt hẳn |
+| `:RenderMarkdown buf_toggle` | Chỉ bật/tắt cho buffer đang mở |
+| `:RenderMarkdown preview` | Mở bản xem trước |
+| `:RenderMarkdown config` | In ra phần config khác mặc định |
 
 ---
 
