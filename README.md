@@ -47,6 +47,7 @@ Xem trước không thay đổi gì: `./install.sh --dry-run`
 **Format & lint** — none-ls chạy prettier, eslint_d, shfmt khi lưu file.
 **Git** — gitsigns (dấu thay đổi ở cột trái) + fugitive (`:Git commit`).
 **Học phím** — which-key: bấm `Space` đợi 300ms là hiện bảng gợi ý.
+**Đi lại chung với tmux** — `Ctrl+h/j/k/l` nhảy qua cả cửa sổ nvim lẫn pane tmux; chia cửa sổ và đổi kích thước dùng chung ký hiệu với [tmux-config](https://github.com/Gin111191/tmux-config).
 **Markdown** — render-markdown.nvim: mở file `.md` là tự dựng hình (tiêu đề, bảng, checkbox, khối code).
 
 44 plugin, ghim phiên bản trong `lazy-lock.json`.

@@ -72,17 +72,34 @@ Khi đang ở trong cây:
 | **`Tab`** / **`Shift+Tab`** | Buffer sau / trước |
 | **`Space + x`** | **Đóng hẳn buffer** |
 | `Space + b` | Buffer trống mới |
-| `Space + v` | Chia cửa sổ **dọc** |
-| `Space + h` | Chia cửa sổ **ngang** |
-| `Ctrl + h/j/k/l` | Nhảy giữa các cửa sổ — **và cả pane tmux** |
-| Phím mũi tên | Đổi kích thước cửa sổ |
+| `Space + \|` | Chia cửa sổ **dọc** (tmux: `Prefix + \|`) |
+| `Space + -` | Chia cửa sổ **ngang** (tmux: `Prefix + -`) |
+| **`Ctrl + h/j/k/l`** | **Nhảy giữa các cửa sổ — và xuyên luôn sang pane tmux** |
+| `Space + H/J/K/L` | Đổi kích thước (tmux: `Prefix + H/J/K/L`) |
 | `Space + s + e` | Cân đều kích thước các cửa sổ |
 | `Space + x + s` | Đóng cửa sổ hiện tại |
 | `Space + t + o` / `t + x` | Mở / đóng tab |
 | `Space + t + n` / `t + p` | Tab sau / trước |
 
 > `Ctrl+h/j/k/l` là phím **dùng chung với tmux** nhờ `vim-tmux-navigator`. Đang ở cửa sổ nvim
-> ngoài cùng bên trái mà bấm `Ctrl+h` thì nhảy thẳng sang pane tmux bên cạnh.
+> ngoài cùng bên trái mà bấm `Ctrl+h` thì nhảy thẳng sang pane tmux bên cạnh — một bộ phím
+> cho cả hai, không cần biết mình đang ở đâu.
+>
+> Cần cả hai phía: plugin bên nvim (có sẵn) **và** mục "Điều hướng liền mạch với Neovim"
+> trong [tmux-config](https://github.com/Gin111191/tmux-config). Thiếu phía tmux thì chỉ
+> đi được một chiều.
+
+### Phím dùng chung với tmux
+
+| Động tác | Neovim | tmux |
+|---|---|---|
+| Chuyển ô | `Ctrl + h/j/k/l` | `Ctrl + h/j/k/l` — **cùng phím** |
+| Chia dọc | `Space + \|` | `Prefix + \|` |
+| Chia ngang | `Space + -` | `Prefix + -` |
+| Đổi kích thước | `Space + H/J/K/L` | `Prefix + H/J/K/L` |
+
+⚠️ Một chỗ **trùng chữ nhưng khác nghĩa**: `Space + x` ở nvim đóng **buffer**,
+còn `Prefix + x` ở tmux đóng **pane**.
 
 ---
 
