@@ -162,6 +162,51 @@ The left column shows the marks by itself: `+` added, `~` changed, `_` deleted.
 | `p` (visual) | Paste **without losing what was copied** |
 | `Space + l + w` | Toggle line wrapping |
 
+## Selecting a block — text objects
+
+Stock Vim, no plugin. The pattern is always three keys: `v` + `i` or `a` + the bracket.
+
+- `i` = **inner** — what is inside, brackets excluded
+- `a` = **around** — includes the brackets themselves
+
+| Keys | Selects |
+|---|---|
+| `vi{` or `vi}` | inside `{ … }` |
+| `va{` | `{ … }` including the braces |
+| `vi(` or `vib` | inside `( … )` |
+| `vi[` | inside `[ … ]` |
+| `vi<` | inside `< … >` |
+| `vi"` `vi'` `` vi` `` | inside quotes |
+| `vit` | inside an HTML/JSX tag |
+
+**The cursor can be anywhere inside the block** — it does not have to be on the bracket. Vim
+searches outward for you.
+
+Swap `v` for any operator and it acts instead of selecting:
+
+| Keys | Does |
+|---|---|
+| `di{` | delete everything inside the braces |
+| `ci{` | delete inside and start typing |
+| `yi{` | copy inside |
+| `da(` | delete the parentheses and their contents |
+
+`ci{` and `ci(` are the two you will use most.
+
+**Two extras**
+
+- `%` jumps between a bracket and its match. `V%` selects the whole block **linewise**, brackets
+  included — the one for grabbing a whole function body.
+- With a selection live, press `i{` again to expand outward to the next enclosing block. Repeat to
+  keep widening.
+
+Same idea beyond brackets: `viw` word · `vip` paragraph · `vis` sentence.
+
+⚠️ `r` on a selection does **not** swap in a word — it stamps one character over every character
+selected (`viw` then `rx` on "hello" gives "xxxxx"). Use `c` to replace a selection with new text.
+
+---
+
 ## Appearance
 
 | Key | What it does |
