@@ -37,6 +37,12 @@ return {
   {
     -- High-performance color highlighter
     'norcalli/nvim-colorizer.lua',
+    -- It paints hex codes in their own colour, which needs 24-bit colour to mean
+    -- anything. Without it the plugin only prints "&termguicolors must be set" at
+    -- every startup, so in a 256-colour terminal it simply does not load.
+    cond = function()
+      return vim.o.termguicolors
+    end,
     config = function()
       require('colorizer').setup()
     end,

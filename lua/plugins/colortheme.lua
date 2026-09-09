@@ -26,6 +26,31 @@ local DUSK_NAVY = {
   base0D = "#7D9BD4", -- lam   — tên hàm            (brights[4])
   base0E = "#A99AD4", -- tím   — từ khoá            (brights[5])
   base0F = "#B4637A", -- nâu đỏ — cũ/không dùng nữa (ansi[1])
+
+  -- 256-colour fallback, used only when termguicolors is off (see options.lua) —
+  -- i.e. in a terminal without 24-bit colour, such as macOS Terminal.app.
+  -- Without these base16-nvim leaves cterm unset and the theme shows no colour at all.
+  -- Each number is the nearest colour in the fixed xterm 16-255 palette, by redmean
+  -- distance; indices 0-15 are deliberately avoided because they change with the
+  -- terminal profile. The eight syntax colours plus comments and normal text are
+  -- forced distinct, so nothing readable collapses into its neighbour.
+  -- Regenerate: tools/nearest256.py
+  cterm00 = 235, -- #262626  (the navy tint is lost: the 256 cube has no dark blue-grey)
+  cterm01 = 237, -- #3a3a3a
+  cterm02 = 239, -- #4e4e4e
+  cterm03 = 247, -- #9e9e9e
+  cterm04 = 146, -- #afafd7
+  cterm05 = 255, -- #eeeeee
+  cterm06 = 255, -- #eeeeee  (shares with base05 on purpose — both are plain bright text)
+  cterm07 = 231, -- #ffffff  (exact)
+  cterm08 = 175, -- #d787af
+  cterm09 = 179, -- #d7af5f
+  cterm0A = 178, -- #d7af00
+  cterm0B = 109, -- #87afaf
+  cterm0C = 110, -- #87afd7
+  cterm0D = 104, -- #8787d7
+  cterm0E = 140, -- #af87d7
+  cterm0F = 132, -- #af5f87
 }
 
 return {
@@ -52,7 +77,7 @@ return {
             "Normal", "NormalNC", "NormalFloat", "FloatBorder",
             "SignColumn", "LineNr", "EndOfBuffer", "TabLineFill",
           }) do
-            vim.api.nvim_set_hl(0, group, { bg = "none" })
+            vim.api.nvim_set_hl(0, group, { bg = "none", ctermbg = "none" })
           end
         end
       end

@@ -18,7 +18,12 @@ vim.o.splitbelow = true -- Force all horizontal splits to go below current windo
 vim.o.splitright = true -- Force all vertical splits to go to the right of current window (default: false)
 vim.o.hlsearch = false -- Set highlight on search (default: true)
 vim.o.showmode = false -- We don't need to see things like -- INSERT -- anymore (default: true)
-vim.opt.termguicolors = true -- Set termguicolors to enable highlight groups (default: false)
+-- 'termguicolors' is deliberately NOT set here. Neovim asks the terminal itself and
+-- turns it on when the answer is yes (:h 'termguicolors'); setting it by hand disables
+-- that. Forcing it on was the bug: Terminal.app has no 24-bit colour, so it was being
+-- sent codes it cannot read and showed a single colour. When the answer is no, the
+-- 256-colour numbers in lua/plugins/colortheme.lua take over.
+-- Force it by hand if ever needed: export COLORTERM=truecolor
 vim.o.whichwrap = 'bs<>[]hl' -- Which "horizontal" keys are allowed to travel to prev/next line (default: 'b,s')
 vim.o.numberwidth = 4 -- Set number column width to 2 {default 4} (default: 4)
 vim.o.swapfile = false -- Creates a swapfile (default: true)
