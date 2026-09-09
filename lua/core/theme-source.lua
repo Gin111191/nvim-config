@@ -1,22 +1,22 @@
--- Đọc scheme WezTerm đang dùng, để Neovim khoác đúng bộ màu của terminal.
+-- Read the scheme WezTerm is using, so Neovim wears the terminal's own colours.
 --
--- WezTerm ghi lựa chọn vào theme.lua (bộ chọn CMD/CTRL+SHIFT+T viết ra file này).
--- Ta đọc lại file đó. Không tìm thấy thì rơi về Dusk-Navy tối.
+-- WezTerm writes the choice into theme.lua (the CMD/CTRL+SHIFT+T picker writes that
+-- file). We read it back. If it cannot be found, fall back to the dark Dusk-Navy.
 local M = {}
 
--- Thứ tự tìm: macOS/Linux trước, rồi phía Windows khi đang chạy trong WSL.
+-- Search order: macOS/Linux first, then the Windows side when running inside WSL.
 local function candidates()
   local home = os.getenv("HOME") or ""
   local list = {
     home .. "/.config/wezterm/theme.lua",
     home .. "/.wezterm-theme.lua",
   }
-  -- Trong WSL, config WezTerm nằm bên Windows.
+  -- Inside WSL, the WezTerm config lives on the Windows side.
   local winuser = os.getenv("WIN_USER")
   if winuser then
     list[#list + 1] = "/mnt/c/Users/" .. winuser .. "/.config/wezterm/theme.lua"
   end
-  -- Không đặt WIN_USER thì dò các thư mục người dùng Windows.
+  -- With WIN_USER unset, probe the Windows user directories.
   local ok, dirs = pcall(vim.fn.glob, "/mnt/c/Users/*/.config/wezterm/theme.lua", false, true)
   if ok and type(dirs) == "table" then
     for _, path in ipairs(dirs) do
@@ -26,7 +26,7 @@ local function candidates()
   return list
 end
 
--- Trả về { dark = "...", light = "..." } hoặc nil nếu không đọc được.
+-- Returns { dark = "...", light = "..." }, or nil if it could not be read.
 function M.wezterm_theme()
   for _, path in ipairs(candidates()) do
     if vim.uv.fs_stat(path) then
@@ -42,9 +42,9 @@ function M.wezterm_theme()
   return nil
 end
 
--- Neovim nên dùng nền tối hay sáng?
--- vim.o.background do biến $COLORFGBG hoặc truy vấn OSC 11 của terminal quyết định;
--- ta tin vào nó, vì WezTerm đã tự đổi theo sáng/tối của hệ điều hành rồi.
+-- Should Neovim use a dark or a light background?
+-- vim.o.background is decided by $COLORFGBG or by the terminal's OSC 11 reply; we
+-- trust it, because WezTerm already follows the operating system's light/dark.
 function M.is_dark()
   return vim.o.background ~= "light"
 end

@@ -40,7 +40,7 @@ return {
     require('lualine').setup {
       options = {
         icons_enabled = true,
-        theme = 'auto', -- bám theo colorscheme đang dùng (Dusk-Navy / Everforest)
+        theme = 'auto', -- follows whichever colorscheme is active (Dusk-Navy / Everforest)
         -- Some useful glyphs:
         -- https://www.nerdfonts.com/cheat-sheet
         --        

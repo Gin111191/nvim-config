@@ -28,9 +28,9 @@ vim.keymap.set('n', '<C-u>', '<C-u>zz', opts)
 vim.keymap.set('n', 'n', 'nzzzv', opts)
 vim.keymap.set('n', 'N', 'Nzzzv', opts)
 
--- Đổi kích thước cửa sổ: Space + H/J/K/L
--- Khớp với tmux (Prefix + H/J/K/L). Trước đây dùng phím mũi tên, nhưng như vậy
--- mũi tên mất chức năng di chuyển con trỏ thông thường.
+-- Resize the window: Space + H/J/K/L
+-- Matches tmux (Prefix + H/J/K/L). This used to be the arrow keys, but that cost
+-- the arrows their ordinary job of moving the cursor.
 vim.keymap.set('n', '<leader>H', ':vertical resize -5<CR>', opts)
 vim.keymap.set('n', '<leader>J', ':resize +5<CR>', opts)
 vim.keymap.set('n', '<leader>K', ':resize -5<CR>', opts)
@@ -43,22 +43,22 @@ vim.keymap.set('n', '<leader>x', ':bdelete!<CR>', opts) -- close buffer
 vim.keymap.set('n', '<leader>b', '<cmd> enew <CR>', opts) -- new buffer
 
 -- Window management
--- Chia cửa sổ, ký hiệu giống tmux: | dọc, - ngang
-vim.keymap.set('n', '<leader>|', '<C-w>v', opts) -- chia dọc  (tmux: Prefix + |)
-vim.keymap.set('n', '<leader>-', '<C-w>s', opts) -- chia ngang (tmux: Prefix + -)
+-- Splitting windows, with the same symbols as tmux: | vertical, - horizontal
+vim.keymap.set('n', '<leader>|', '<C-w>v', opts) -- split vertically   (tmux: Prefix + |)
+vim.keymap.set('n', '<leader>-', '<C-w>s', opts) -- split horizontally (tmux: Prefix + -)
 vim.keymap.set('n', '<leader>se', '<C-w>=', opts) -- make split windows equal width & height
 vim.keymap.set('n', '<leader>xs', ':close<CR>', opts) -- close current split window
 
--- Di chuyển giữa các cửa sổ: Ctrl + h/j/k/l
+-- Moving between windows: Ctrl + h/j/k/l
 --
--- KHÔNG đặt ở đây. Plugin christoomey/vim-tmux-navigator (lua/plugins/misc.lua)
--- chiếm đúng bộ phím này và nạp sau, nên mọi ánh xạ :wincmd viết ở đây đều bị đè
--- và không bao giờ chạy.
+-- NOT set here. The christoomey/vim-tmux-navigator plugin (lua/plugins/misc.lua)
+-- claims exactly these keys and loads later, so any :wincmd mapping written here is
+-- overwritten and never runs.
 --
--- Plugin làm được nhiều hơn :wincmd: khi con trỏ đã ở cửa sổ ngoài cùng, nó nhảy
--- tiếp sang pane tmux bên cạnh thay vì đứng im. Muốn vậy tmux cũng phải có phần
--- cấu hình tương ứng — xem mục "Điều hướng liền mạch với Neovim" trong tmux.conf
--- của Gin111191/tmux-config.
+-- The plugin does more than :wincmd: with the cursor already in the outermost
+-- window, it carries on into the tmux pane beside it instead of stopping. For that,
+-- tmux needs its matching half — see the "Seamless navigation with Neovim" section
+-- in the tmux.conf of Gin111191/tmux-config.
 
 -- Tabs
 vim.keymap.set('n', '<leader>to', ':tabnew<CR>', opts) -- open new tab

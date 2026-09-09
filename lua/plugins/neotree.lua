@@ -5,9 +5,9 @@ return {
     'nvim-lua/plenary.nvim',
     'nvim-tree/nvim-web-devicons',
     'MunifTanjim/nui.nvim',
-    -- image.nvim cần luarocks + ImageMagick. Máy không có luarocks thì lazy thử
-    -- build lại vô hạn rồi báo "Too many rounds of missing plugins".
-    -- Bật lại bằng cách đổi enabled = true sau khi cài luarocks.
+    -- image.nvim needs luarocks + ImageMagick. On a machine without luarocks, lazy
+    -- retries the build endlessly and then reports "Too many rounds of missing plugins".
+    -- Turn it back on by setting enabled = true once luarocks is installed.
     { '3rd/image.nvim', enabled = false },
     {
       's1n7ax/nvim-window-picker',

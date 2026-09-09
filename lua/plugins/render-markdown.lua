@@ -1,20 +1,20 @@
--- Hiển thị file Markdown đã "dựng hình" ngay trong Neovim: tiêu đề có nền màu,
--- gạch đầu dòng thành ký hiệu, bảng vẽ khung, checkbox thành ô tick, khối code có
--- icon ngôn ngữ — thay vì nhìn thô các dấu #, *, |.
+-- Show Markdown files "rendered" inside Neovim: headings on a coloured background,
+-- bullets as symbols, tables drawn with borders, checkboxes as tick boxes, code
+-- blocks with a language icon — instead of the raw #, * and | characters.
 --
--- Vào chế độ Insert (bấm i) thì tự trả về Markdown thô để sửa, thoát ra lại dựng hình.
--- Đó chính là ý nghĩa của render_modes = { 'n', 'c', 't' } — và cũng là mặc định,
--- nên không cần khai báo.
+-- Entering Insert mode (pressing i) drops back to raw Markdown for editing, and
+-- leaving it renders again. That is what render_modes = { 'n', 'c', 't' } means —
+-- and it is also the default, so it need not be declared.
 --
--- Lệnh: :RenderMarkdown toggle | enable | disable | expand
+-- Commands: :RenderMarkdown toggle | enable | disable | expand
 return {
   'MeanderingProgrammer/render-markdown.nvim',
-  -- Config này đã dùng nvim-web-devicons ở 4 chỗ khác (alpha, neo-tree,
-  -- bufferline, telescope). Plugin tự dò icon provider: thử mini.icons trước,
-  -- không có thì dùng nvim-web-devicons. Khai báo thẳng cái đang dùng để khỏi
-  -- kéo thêm bộ icon thứ hai với icon khác nhau cho cùng loại file.
+  -- This config already uses nvim-web-devicons in 4 other places (alpha, neo-tree,
+  -- bufferline, telescope). The plugin probes for an icon provider: it tries
+  -- mini.icons first and falls back to nvim-web-devicons. Naming the one already in
+  -- use avoids pulling in a second icon set that draws the same file type differently.
   dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' },
-  ft = { 'markdown' }, -- chỉ nạp khi mở file .md, khớp file_types mặc định
+  ft = { 'markdown' }, -- only load on a .md file, matching the default file_types
   ---@module 'render-markdown'
   ---@type render.md.UserConfig
   opts = {},

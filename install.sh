@@ -1,11 +1,11 @@
 #!/bin/sh
 # ==============================================================================
-#  Cài đặt Neovim config — macOS / Linux / WSL
+#  Install the Neovim config — macOS / Linux / WSL
 #  https://github.com/Gin111191/nvim-config
 #
-#  Dùng:  ./install.sh            cài bằng symlink (khuyến nghị)
-#         ./install.sh --copy     cài bằng cách copy
-#         ./install.sh --dry-run  chỉ xem sẽ làm gì
+#  Usage: ./install.sh            install by symlink (recommended)
+#         ./install.sh --copy     install by copying
+#         ./install.sh --dry-run  only show what it would do
 # ==============================================================================
 set -eu
 
@@ -19,14 +19,14 @@ for arg in "$@"; do
         --copy)    MODE=copy ;;
         --dry-run) DRY=1 ;;
         -h|--help) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
-        *) echo "Tham số không hiểu: $arg" >&2; exit 1 ;;
+        *) echo "Unknown argument: $arg" >&2; exit 1 ;;
     esac
 done
 
 say() { printf '%s\n' "$*"; }
 run() { if [ "$DRY" -eq 1 ]; then say "  [dry-run] $*"; else "$@"; fi; }
 
-# ---------- 1. Nền tảng ----------
+# ---------- 1. Platform ----------
 OS="$(uname -s 2>/dev/null || echo unknown)"
 case "$OS" in
     Darwin) PLATFORM="macOS" ;;
@@ -36,110 +36,111 @@ case "$OS" in
         else PLATFORM="Linux"; fi ;;
     *) PLATFORM="$OS" ;;
 esac
-say "Hệ điều hành : $PLATFORM"
+say "Operating system : $PLATFORM"
 
 # ---------- 2. Neovim ----------
 if ! command -v nvim >/dev/null 2>&1; then
     say ""
-    say "LỖI: chưa cài Neovim. Cần bản 0.12 trở lên."
+    say "ERROR: Neovim is not installed. Version 0.12 or newer is needed."
     say "  macOS        : brew install neovim"
-    say "  Ubuntu/Debian: sudo apt install neovim   (bản apt thường cũ — cân nhắc tải bản release)"
+    say "  Ubuntu/Debian: sudo apt install neovim   (apt's build is often old — consider the release binary)"
     say "  Arch         : sudo pacman -S neovim"
     exit 1
 fi
 NVIM_VER="$(nvim --version | head -1)"
-say "Neovim       : $NVIM_VER"
+say "Neovim           : $NVIM_VER"
 
 case "$NVIM_VER" in
     *v0.[0-9].*)
         MINOR="$(printf '%s' "$NVIM_VER" | sed -n 's/.*v0\.\([0-9]*\)\..*/\1/p')"
         if [ -n "$MINOR" ] && [ "$MINOR" -lt 12 ] 2>/dev/null; then
-            say "  CẢNH BÁO: config này cần Neovim >= 0.12."
-            say "    - vim.lsp.config()          cần >= 0.11"
-            say "    - nvim-treesitter nhánh main cần >= 0.12"
+            say "  WARNING: this config needs Neovim >= 0.12."
+            say "    - vim.lsp.config()               needs >= 0.11"
+            say "    - nvim-treesitter's main branch  needs >= 0.12"
         fi ;;
 esac
 
-# ---------- 3. Công cụ đi kèm ----------
+# ---------- 3. Supporting tools ----------
 say ""
-say "Công cụ đi kèm:"
+say "Supporting tools:"
 missing=""
 for tool in git gcc curl unzip tar node npm; do
     if command -v "$tool" >/dev/null 2>&1; then
-        printf '  có     %s\n' "$tool"
+        printf '  have     %s\n' "$tool"
     else
-        printf '  THIẾU  %s\n' "$tool"
+        printf '  MISSING  %s\n' "$tool"
         missing="$missing $tool"
     fi
 done
 if [ -n "$missing" ]; then
     say ""
-    say "  Thiếu:$missing"
-    say "    git, curl, unzip, tar → lazy.nvim, Mason và treesitter cần để tải"
-    say "    gcc                  → treesitter cần để biên dịch parser"
-    say "    node, npm         → các LSP viết bằng JavaScript (typescript, json, css,"
-    say "                        html, tailwind, eslint_d, prettier) sẽ KHÔNG cài được"
-    say "  Vẫn cài tiếp được, nhưng các phần trên sẽ báo lỗi."
+    say "  Missing:$missing"
+    say "    git, curl, unzip, tar → lazy.nvim, Mason and treesitter need these to download"
+    say "    gcc                  → treesitter needs it to compile parsers"
+    say "    node, npm            → the LSPs written in JavaScript (typescript, json, css,"
+    say "                           html, tailwind, eslint_d, prettier) will NOT install"
+    say "  The install still runs, but those parts will report errors."
 fi
 
-# ---------- 4. Sao lưu ----------
+# ---------- 4. Backups ----------
 STAMP="$(date +%Y%m%d-%H%M%S)"
 say ""
 REPLACED_OTHER=0
 if [ -e "$DEST" ] || [ -L "$DEST" ]; then
     if [ -L "$DEST" ] && [ "$(readlink "$DEST")" = "$SRC_DIR" ]; then
-        say "Đã cài sẵn   : $DEST -> $SRC_DIR"
+        say "Already there    : $DEST -> $SRC_DIR"
     else
-        say "Sao lưu      : $DEST -> $DEST.bak.$STAMP"
+        say "Backing up       : $DEST -> $DEST.bak.$STAMP"
         run mv "$DEST" "$DEST.bak.$STAMP"
         REPLACED_OTHER=1
     fi
 fi
 
-# Dữ liệu plugin của MỘT config khác có thể xung đột (phiên bản plugin lệch,
-# parser treesitter biên dịch bằng API cũ). Chỉ dọn khi vừa thay thế config khác;
-# cài lại chính config này thì giữ nguyên để khỏi tải lại từ đầu.
+# Plugin data belonging to a DIFFERENT config can clash (mismatched plugin versions,
+# treesitter parsers compiled against the old API). Only clear it when another config
+# has just been replaced; reinstalling this same config keeps it, to avoid
+# re-downloading everything.
 if [ "$REPLACED_OTHER" -eq 1 ]; then
     for d in "${XDG_DATA_HOME:-$HOME/.local/share}/nvim" "${XDG_STATE_HOME:-$HOME/.local/state}/nvim"; do
         if [ -d "$d" ]; then
-            say "Sao lưu      : $d -> $d.bak.$STAMP"
+            say "Backing up       : $d -> $d.bak.$STAMP"
             run mv "$d" "$d.bak.$STAMP"
         fi
     done
 fi
 
-# ---------- 5. Cài ----------
+# ---------- 5. Install ----------
 if [ ! -e "$DEST" ]; then
     run mkdir -p "$(dirname "$DEST")"
     if [ "$MODE" = symlink ]; then
-        say "Tạo symlink  : $DEST -> $SRC_DIR"
+        say "Symlinking       : $DEST -> $SRC_DIR"
         run ln -sfn "$SRC_DIR" "$DEST"
     else
-        say "Copy         : $SRC_DIR -> $DEST"
+        say "Copying          : $SRC_DIR -> $DEST"
         run cp -r "$SRC_DIR" "$DEST"
     fi
 fi
 
-# ---------- 6. Tải plugin ----------
+# ---------- 6. Download the plugins ----------
 if [ "$DRY" -eq 0 ]; then
     say ""
-    say "1/3  Tải plugin (lần đầu mất vài phút)..."
+    say "1/3  Downloading plugins (the first run takes a few minutes)..."
     nvim --headless "+Lazy! sync" +qa 2>/dev/null || true
 
-    # Mason PHẢI chạy trước treesitter: nvim-treesitter nhánh 'main' biên dịch
-    # parser bằng tree-sitter CLI, mà CLI đó do Mason cài. Chạy ngược thứ tự thì
-    # mọi parser đều lỗi ENOENT ... (cmd): 'tree-sitter'.
-    say "2/3  Cài LSP, formatter, linter và tree-sitter CLI qua Mason..."
+    # Mason MUST run before treesitter: nvim-treesitter's 'main' branch compiles
+    # parsers with the tree-sitter CLI, and Mason is what installs that CLI. In the
+    # other order every parser fails with ENOENT ... (cmd): 'tree-sitter'.
+    say "2/3  Installing LSPs, formatters, linters and the tree-sitter CLI via Mason..."
     nvim --headless "+MasonToolsUpdateSync" +qa 2>/dev/null || true
 
-    say "3/3  Biên dịch parser treesitter (mất vài phút)..."
+    say "3/3  Compiling treesitter parsers (takes a few minutes)..."
     nvim --headless "+TSInstallAll" +qa 2>/dev/null || true
 fi
 
 say ""
-say "Xong. Mở nvim và thử:"
-say "  Space          đợi 300ms → hiện bảng gợi ý phím"
-say "  Space + e      cây thư mục"
-say "  Space + s + f  tìm file"
-say "  Space + s + g  tìm chữ trong dự án"
-say "  :checkhealth   soi xem còn thiếu gì"
+say "Done. Open nvim and try:"
+say "  Space          wait 300ms → the key hint panel appears"
+say "  Space + e      the file tree"
+say "  Space + s + f  find a file"
+say "  Space + s + g  find text across the project"
+say "  :checkhealth   see what is still missing"

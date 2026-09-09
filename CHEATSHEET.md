@@ -1,261 +1,262 @@
 # Cheatsheet
 
-Leader = **`Space`**. `Space + e` nghĩa là bấm `Space` rồi bấm `e`.
+Leader = **`Space`**. `Space + e` means press `Space`, then press `e`.
 
-> **Quên phím?** Bấm `Space` rồi **đợi 300ms** — `which-key` hiện bảng gợi ý mọi phím tiếp theo.
-> Hoặc `Space + s + k` để tìm kiếm trong toàn bộ phím tắt.
+> **Forgotten a key?** Press `Space` and **wait 300ms** — `which-key` shows a panel of every key
+> that could come next. Or `Space + s + k` to search the whole list of bindings.
 
 ---
 
-## Ba khái niệm cần nắm trước
+## Three ideas to get straight first
 
 ```
-  BUFFER   =  nội dung một file, đang nằm trong bộ nhớ   →  tờ giấy
-  WINDOW   =  một ô để NHÌN VÀO buffer                    →  khung cửa sổ
-  TAB      =  một cách sắp xếp các window                 →  cách bày các khung
+  BUFFER   =  the contents of a file, held in memory   →  a sheet of paper
+  WINDOW   =  a box you LOOK INTO a buffer through     →  a window frame
+  TAB      =  one arrangement of windows               →  how the frames are laid out
 ```
 
-Mở 10 file = **10 buffer**, nhưng màn hình chỉ hiện 1. Chín cái kia vẫn còn trong bộ nhớ.
-`:q` đóng **window**, không vứt buffer. Muốn vứt hẳn buffer phải `Space + x`.
+Opening 10 files = **10 buffers**, but the screen shows only 1. The other nine are still in memory.
+`:q` closes a **window**, it does not throw the buffer away. To throw a buffer away, use `Space + x`.
 
-Dải tab trên cùng (`bufferline`) tồn tại để **hiện ra** danh sách buffer mà Vim vốn giấu.
-
----
-
-## File & tìm kiếm — Telescope
-
-| Phím | Việc |
-|---|---|
-| **`Space + s + f`** | **Tìm file** theo tên |
-| **`Space + s + g`** | **Tìm chữ** trong toàn bộ dự án (grep) |
-| `Space + s + w` | Tìm từ đang đứng dưới con trỏ |
-| `Space + Space` | Danh sách buffer đang mở |
-| `Space + s + .` | File mở gần đây |
-| `Space + s + d` | Danh sách lỗi/cảnh báo |
-| `Space + s + h` | Tra tài liệu Neovim |
-| `Space + s + k` | **Tìm trong danh sách phím tắt** |
-| `Space + s + r` | Mở lại lần tìm trước |
-| `Space + s + s` | Danh sách mọi lệnh Telescope |
-
-Trong cửa sổ Telescope: `Ctrl+n`/`Ctrl+p` lên xuống, `Enter` mở, `Ctrl+v` mở sang split dọc, `Esc` thoát.
-
-## Cây thư mục — Neo-tree
-
-| Phím | Việc |
-|---|---|
-| **`Space + e`** | Bật/tắt cây thư mục |
-| `\` | Mở cây và nhảy tới file đang mở |
-| `Space + n + g + s` | Cửa sổ nổi xem trạng thái git |
-
-Khi đang ở trong cây:
-
-| Phím | Việc |
-|---|---|
-| `a` / `A` | Thêm file / thêm thư mục |
-| `d` `r` `c` `m` | Xoá / đổi tên / copy / di chuyển |
-| `y` `x` `p` | Copy / cắt / dán |
-| `S` / `s` | Mở sang split ngang / dọc |
-| `t` | Mở sang tab mới |
-| `w` | Chọn cửa sổ nào để mở vào |
-| `P` | Xem trước, không rời cây |
-| `H` | Hiện/ẩn file ẩn |
-| `/` | Lọc nhanh theo tên |
-| `z` | Đóng hết nhánh |
-| `?` | Xem toàn bộ phím của neo-tree |
+The strip of tabs along the top (`bufferline`) exists to **show** the buffer list that Vim otherwise hides.
 
 ---
 
-## Buffer, cửa sổ, tab
+## Files & searching — Telescope
 
-| Phím | Việc |
+| Key | What it does |
 |---|---|
-| **`Tab`** / **`Shift+Tab`** | Buffer sau / trước |
-| **`Space + x`** | **Đóng hẳn buffer** |
-| `Space + b` | Buffer trống mới |
-| `Space + \|` | Chia cửa sổ **dọc** (tmux: `Prefix + \|`) |
-| `Space + -` | Chia cửa sổ **ngang** (tmux: `Prefix + -`) |
-| **`Ctrl + h/j/k/l`** | **Nhảy giữa các cửa sổ — và xuyên luôn sang pane tmux** |
-| `Space + H/J/K/L` | Đổi kích thước (tmux: `Prefix + H/J/K/L`) |
-| `Space + s + e` | Cân đều kích thước các cửa sổ |
-| `Space + x + s` | Đóng cửa sổ hiện tại |
-| `Space + t + o` / `t + x` | Mở / đóng tab |
-| `Space + t + n` / `t + p` | Tab sau / trước |
+| **`Space + s + f`** | **Find a file** by name |
+| **`Space + s + g`** | **Find text** across the whole project (grep) |
+| `Space + s + w` | Search for the word under the cursor |
+| `Space + Space` | List the open buffers |
+| `Space + s + .` | Recently opened files |
+| `Space + s + d` | List the errors/warnings |
+| `Space + s + h` | Search the Neovim documentation |
+| `Space + s + k` | **Search the list of key bindings** |
+| `Space + s + r` | Reopen the previous search |
+| `Space + s + s` | List every Telescope command |
 
-> `Ctrl+h/j/k/l` là phím **dùng chung với tmux** nhờ `vim-tmux-navigator`. Đang ở cửa sổ nvim
-> ngoài cùng bên trái mà bấm `Ctrl+h` thì nhảy thẳng sang pane tmux bên cạnh — một bộ phím
-> cho cả hai, không cần biết mình đang ở đâu.
+Inside a Telescope window: `Ctrl+n`/`Ctrl+p` move up and down, `Enter` opens, `Ctrl+v` opens in a vertical split, `Esc` leaves.
+
+## File tree — Neo-tree
+
+| Key | What it does |
+|---|---|
+| **`Space + e`** | Toggle the file tree |
+| `\` | Open the tree and jump to the current file |
+| `Space + n + g + s` | A floating window showing git status |
+
+While inside the tree:
+
+| Key | What it does |
+|---|---|
+| `a` / `A` | Add a file / add a directory |
+| `d` `r` `c` `m` | Delete / rename / copy / move |
+| `y` `x` `p` | Copy / cut / paste |
+| `S` / `s` | Open in a horizontal / vertical split |
+| `t` | Open in a new tab |
+| `w` | Choose which window to open into |
+| `P` | Preview, without leaving the tree |
+| `H` | Show/hide hidden files |
+| `/` | Quick filter by name |
+| `z` | Collapse every branch |
+| `?` | Show all of neo-tree's keys |
+
+---
+
+## Buffers, windows, tabs
+
+| Key | What it does |
+|---|---|
+| **`Tab`** / **`Shift+Tab`** | Next / previous buffer |
+| **`Space + x`** | **Close the buffer for good** |
+| `Space + b` | A new empty buffer |
+| `Space + \|` | Split the window **vertically** (tmux: `Prefix + \|`) |
+| `Space + -` | Split the window **horizontally** (tmux: `Prefix + -`) |
+| **`Ctrl + h/j/k/l`** | **Jump between windows — and straight on into a tmux pane** |
+| `Space + H/J/K/L` | Resize (tmux: `Prefix + H/J/K/L`) |
+| `Space + s + e` | Make the windows equal in size |
+| `Space + x + s` | Close the current window |
+| `Space + t + o` / `t + x` | Open / close a tab |
+| `Space + t + n` / `t + p` | Next / previous tab |
+
+> `Ctrl+h/j/k/l` are the keys **shared with tmux**, thanks to `vim-tmux-navigator`. Sitting in the
+> leftmost nvim window and pressing `Ctrl+h` jumps straight into the tmux pane beside it — one set
+> of keys for both, with no need to know where you are.
 >
-> Cần cả hai phía: plugin bên nvim (có sẵn) **và** mục "Điều hướng liền mạch với Neovim"
-> trong [tmux-config](https://github.com/Gin111191/tmux-config). Thiếu phía tmux thì chỉ
-> đi được một chiều.
+> Both sides are needed: the plugin on the nvim side (already here) **and** the "Seamless navigation
+> with Neovim" section in [tmux-config](https://github.com/Gin111191/tmux-config). Without the tmux
+> half it only works one way.
 
-### Phím dùng chung với tmux
+### The keys shared with tmux
 
-| Động tác | Neovim | tmux |
+| Action | Neovim | tmux |
 |---|---|---|
-| Chuyển ô | `Ctrl + h/j/k/l` | `Ctrl + h/j/k/l` — **cùng phím** |
-| Chia dọc | `Space + \|` | `Prefix + \|` |
-| Chia ngang | `Space + -` | `Prefix + -` |
-| Đổi kích thước | `Space + H/J/K/L` | `Prefix + H/J/K/L` |
+| Move between boxes | `Ctrl + h/j/k/l` | `Ctrl + h/j/k/l` — **the same keys** |
+| Split vertically | `Space + \|` | `Prefix + \|` |
+| Split horizontally | `Space + -` | `Prefix + -` |
+| Resize | `Space + H/J/K/L` | `Prefix + H/J/K/L` |
 
-⚠️ Một chỗ **trùng chữ nhưng khác nghĩa**: `Space + x` ở nvim đóng **buffer**,
-còn `Prefix + x` ở tmux đóng **pane**.
+⚠️ One place where the **letters match but the meaning does not**: `Space + x` in nvim closes a
+**buffer**, while `Prefix + x` in tmux closes a **pane**.
 
 ---
 
-## Lập trình — LSP
+## Writing code — LSP
 
-Chỉ hoạt động khi mở file có language server (Mason đã cài sẵn cho lua, ts/js, json, css, html, python, sql, yaml, docker, terraform, tailwind).
+Only active when the open file has a language server (Mason already installs them for lua, ts/js, json, css, html, python, sql, yaml, docker, terraform, tailwind).
 
-| Phím | Việc |
+| Key | What it does |
 |---|---|
-| **`K`** | **Xem mô tả** hàm/biến dưới con trỏ |
-| **`gd`** | **Nhảy tới định nghĩa** (`Ctrl+o` để quay lại) |
-| `gr` | Xem mọi nơi đang dùng nó |
-| `gI` | Nhảy tới phần cài đặt (implementation) |
-| `gD` | Nhảy tới khai báo |
-| `Space + D` | Nhảy tới định nghĩa kiểu dữ liệu |
-| **`Space + c + a`** | **Sửa lỗi tự động** (code action) |
-| **`Space + r + n`** | **Đổi tên** biến/hàm ở mọi nơi |
-| `Space + d + s` | Danh sách ký hiệu trong file |
-| `Space + w + s` | Tìm ký hiệu trong cả dự án |
-| `[d` / `]d` | Lỗi trước / sau |
-| `Space + d` | Xem chi tiết lỗi tại con trỏ |
-| `Space + q` | Mở danh sách toàn bộ lỗi |
+| **`K`** | **Show the description** of the function/variable under the cursor |
+| **`gd`** | **Jump to the definition** (`Ctrl+o` to come back) |
+| `gr` | Show every place it is used |
+| `gI` | Jump to the implementation |
+| `gD` | Jump to the declaration |
+| `Space + D` | Jump to the type definition |
+| **`Space + c + a`** | **Fix it automatically** (code action) |
+| **`Space + r + n`** | **Rename** a variable/function everywhere |
+| `Space + d + s` | List the symbols in this file |
+| `Space + w + s` | Search symbols across the project |
+| `[d` / `]d` | Previous / next problem |
+| `Space + d` | Show the problem at the cursor in full |
+| `Space + q` | Open the list of every problem |
 
-## Gợi ý khi gõ
+## Completion
 
-| Phím | Việc |
+| Key | What it does |
 |---|---|
-| `Ctrl + n` / `Ctrl + p` | Xuống / lên trong danh sách gợi ý |
-| `Enter` | Chọn |
-| `Ctrl + Space` | Gọi gợi ý thủ công |
-| `Tab` | Nhảy tới ô tiếp theo trong snippet |
-| `Ctrl + e` | Đóng bảng gợi ý |
+| `Ctrl + n` / `Ctrl + p` | Down / up the suggestion list |
+| `Enter` | Accept |
+| `Ctrl + Space` | Ask for suggestions by hand |
+| `Tab` | Jump to the next slot in a snippet |
+| `Ctrl + e` | Close the suggestion panel |
 
 ## Git
 
-| Phím / lệnh | Việc |
+| Key / command | What it does |
 |---|---|
-| `:Git` | Bảng trạng thái git |
+| `:Git` | The git status panel |
 | `:Git commit` / `:Git push` | Commit / push |
-| `:Gdiffsplit` | So sánh với bản đã commit |
-| `Space + n + g + s` | Trạng thái git dạng cửa sổ nổi |
+| `:Gdiffsplit` | Compare against the committed version |
+| `Space + n + g + s` | Git status as a floating window |
 
-Cột trái tự hiện dấu: `+` thêm, `~` sửa, `_` xoá.
-
----
-
-## Sửa văn bản
-
-| Phím | Việc |
-|---|---|
-| `Ctrl + s` | Lưu |
-| `Space + s + n` | Lưu **không** chạy format tự động |
-| `Ctrl + q` | Thoát |
-| `gcc` | Comment dòng hiện tại |
-| `gc` (visual) | Comment vùng chọn |
-| `Ctrl+d` / `Ctrl+u` | Cuộn nửa trang, **tự căn giữa** |
-| `n` / `N` | Tìm tiếp, **tự căn giữa** |
-| `x` | Xoá 1 ký tự, **không ghi đè clipboard** |
-| `<` `>` (visual) | Thụt lề, **giữ nguyên vùng chọn** |
-| `p` (visual) | Dán **không mất nội dung đã copy** |
-| `Space + l + w` | Bật/tắt xuống dòng tự động |
-
-## Giao diện
-
-| Phím | Việc |
-|---|---|
-| `Space + b + g` | Bật/tắt nền trong suốt |
-| `Space + t + t` | Xem Neovim đang đọc theme từ đâu |
+The left column shows the marks by itself: `+` added, `~` changed, `_` deleted.
 
 ---
 
-## Màu — đồng bộ với WezTerm
+## Editing text
 
-Bảng màu Neovim lấy **nguyên 16 màu Dusk-Navy** từ `wezterm.lua`:
+| Key | What it does |
+|---|---|
+| `Ctrl + s` | Save |
+| `Space + s + n` | Save **without** running the auto-format |
+| `Ctrl + q` | Quit |
+| `gcc` | Comment out the current line |
+| `gc` (visual) | Comment out the selection |
+| `Ctrl+d` / `Ctrl+u` | Scroll half a page, **re-centring automatically** |
+| `n` / `N` | Next match, **re-centring automatically** |
+| `x` | Delete 1 character, **without overwriting the clipboard** |
+| `<` `>` (visual) | Indent, **keeping the selection** |
+| `p` (visual) | Paste **without losing what was copied** |
+| `Space + l + w` | Toggle line wrapping |
 
-| Thành phần | Màu | Nguồn |
+## Appearance
+
+| Key | What it does |
+|---|---|
+| `Space + b + g` | Toggle the transparent background |
+| `Space + t + t` | Show where Neovim is reading the theme from |
+
+---
+
+## Colours — kept in step with WezTerm
+
+Neovim's palette takes the **16 Dusk-Navy colours verbatim** from `wezterm.lua`:
+
+| Part | Colour | Source |
 |---|---|---|
-| Nền | `#1d2837` | `background` |
-| Chữ | `#EDEEF7` | `foreground` |
-| Chú thích | `#93a1b3` | `BRIGHT_BLACK.dark` |
-| Chuỗi | `#8fbfa9` | `brights[2]` |
-| Tên hàm | `#7d9bd4` | `brights[4]` |
-| Từ khoá | `#a99ad4` | `brights[5]` |
-| Vùng bôi đen | `#3d4a6b` | `selection_bg` |
+| Background | `#1d2837` | `background` |
+| Text | `#EDEEF7` | `foreground` |
+| Comments | `#93a1b3` | `BRIGHT_BLACK.dark` |
+| Strings | `#8fbfa9` | `brights[2]` |
+| Function names | `#7d9bd4` | `brights[4]` |
+| Keywords | `#a99ad4` | `brights[5]` |
+| Selection | `#3d4a6b` | `selection_bg` |
 
-Nền để **trong suốt** cho gradient của WezTerm hiện xuyên qua.
+The background is left **transparent** so WezTerm's gradient shows through.
 
-Đổi màu: sửa `DUSK_NAVY` trong `lua/plugins/colortheme.lua` cho khớp `CUSTOM_SCHEMES` trong `wezterm.lua`.
+To change the colours: edit `DUSK_NAVY` in `lua/plugins/colortheme.lua` to match `CUSTOM_SCHEMES` in `wezterm.lua`.
 
 ---
 
 ## Markdown
 
-Mở file `.md` là tự dựng hình: tiêu đề có icon và nền, `**đậm**` `*nghiêng*` `` `mã` `` ẩn dấu
-markup, gạch đầu dòng thành `●` `○`, checkbox thành `󰄱` `󰱒`, bảng vẽ khung `┌─┬─┐`,
-khối code có nhãn ngôn ngữ.
+Opening a `.md` file renders it in place: headings get an icon and a background, `**bold**`
+`*italic*` `` `code` `` hide their markup, bullets become `●` `○`, checkboxes become `󰄱` `󰱒`,
+tables are drawn with borders `┌─┬─┐`, and code blocks get a language label.
 
-Bấm `i` vào chế độ Insert là trả về Markdown thô để sửa; thoát ra lại dựng hình.
+Pressing `i` to enter Insert mode drops back to raw Markdown for editing; leaving it renders again.
 
-### Vì sao chữ "biến mất" — và cách hiện lại
+### Why text "disappears" — and how to get it back
 
-Đây **không phải fold**, mà là *conceal*: plugin ẩn phần ký hiệu markdown đi và vẽ kết quả
-lên chỗ đó. `[Xem tài liệu](https://vi.du/rat/dai)` chỉ còn `󰌷 Xem tài liệu` — cái URL vẫn
-nằm nguyên trong file, chỉ là không hiện ra.
+This is **not folding**, it is *conceal*: the plugin hides the markdown markup and draws the result
+in its place. `[Read the docs](https://exa.mple/very/long)` shows only `󰌷 Read the docs` — the URL is still
+sitting in the file, it is just not displayed.
 
-Cách hiện lại phần thô, từ nhẹ đến mạnh:
+Ways to see the raw text again, from gentlest to strongest:
 
-| Muốn | Làm |
+| To | Do |
 |---|---|
-| Xem thô **một dòng** | **Đưa con trỏ vào chính dòng đó** — dòng có con trỏ luôn hiện thô |
-| Thu lại | Di con trỏ sang dòng khác |
-| Xem thô **cả vùng quanh con trỏ** | `:RenderMarkdown expand` — mỗi lần gọi mở rộng thêm 1 dòng trên và 1 dòng dưới |
-| Thu vùng đó lại | `:RenderMarkdown contract` — mỗi lần thu 1 dòng, về 0 là dừng |
-| Xem thô **cả file** | `:RenderMarkdown toggle`, hoặc bấm `i` vào Insert mode |
+| See **one line** raw | **Put the cursor on that line** — the line under the cursor is always shown raw |
+| Hide it again | Move the cursor to another line |
+| See **the area around the cursor** raw | `:RenderMarkdown expand` — each call opens up 1 more line above and below |
+| Shrink that area | `:RenderMarkdown contract` — each call takes 1 line back, stopping at 0 |
+| See **the whole file** raw | `:RenderMarkdown toggle`, or press `i` for Insert mode |
 
-Cơ chế đằng sau là `anti_conceal` với `above = 0`, `below = 0` — nghĩa là chỉ đúng dòng đang
-đứng mới bỏ conceal. `expand`/`contract` cộng/trừ hai số đó (`contract` chặn sàn ở 0).
+The mechanism behind it is `anti_conceal` with `above = 0`, `below = 0` — meaning only the line the
+cursor is on drops its conceal. `expand`/`contract` add to and subtract from those two numbers
+(`contract` stops at a floor of 0).
 
-### Toàn bộ lệnh
+### Every command
 
-| Lệnh | Việc |
+| Command | What it does |
 |---|---|
-| `:RenderMarkdown toggle` | Bật/tắt dựng hình cho toàn bộ |
-| `:RenderMarkdown expand` / `contract` | Nới / thu vùng hiện thô quanh con trỏ (±1 dòng mỗi lần) |
-| `:RenderMarkdown enable` / `disable` | Bật / tắt hẳn |
-| `:RenderMarkdown buf_toggle` | Chỉ bật/tắt cho buffer đang mở |
-| `:RenderMarkdown preview` | Mở bản xem trước |
-| `:RenderMarkdown config` | In ra phần config khác mặc định |
+| `:RenderMarkdown toggle` | Toggle rendering for everything |
+| `:RenderMarkdown expand` / `contract` | Widen / shrink the raw area around the cursor (±1 line per call) |
+| `:RenderMarkdown enable` / `disable` | Turn it fully on / off |
+| `:RenderMarkdown buf_toggle` | Toggle it for the current buffer only |
+| `:RenderMarkdown preview` | Open a preview |
+| `:RenderMarkdown config` | Print the config that differs from the default |
 
 ---
 
-## Lệnh bảo trì
+## Maintenance commands
 
-| Lệnh | Việc |
+| Command | What it does |
 |---|---|
-| `:Lazy` | Bảng quản lý plugin |
-| `:Lazy update` | Cập nhật plugin (nhớ commit lại `lazy-lock.json`) |
-| `:Mason` | Bảng quản lý LSP / formatter / linter |
-| `:TSUpdate` | Cập nhật parser treesitter |
-| `:TSInstallAll` | Cài lại toàn bộ parser trong danh sách, chờ tới khi xong |
-| **`:checkhealth`** | **Soi xem còn thiếu gì** — chạy khi có gì đó không hoạt động |
-| `:LspInfo` | Xem LSP nào đang chạy cho file hiện tại |
-| `:messages` | Xem lại các thông báo đã trôi qua |
+| `:Lazy` | The plugin manager panel |
+| `:Lazy update` | Update the plugins (remember to commit `lazy-lock.json` afterwards) |
+| `:Mason` | The LSP / formatter / linter manager panel |
+| `:TSUpdate` | Update the treesitter parsers |
+| `:TSInstallAll` | Reinstall every parser in the list, waiting until it is done |
+| **`:checkhealth`** | **See what is still missing** — run it when something does not work |
+| `:LspInfo` | Show which LSP is running for the current file |
+| `:messages` | Read back the messages that have scrolled past |
 
 ---
 
-## Khi hỏng
+## When it breaks
 
-| Triệu chứng | Nguyên nhân thường gặp |
+| Symptom | The usual cause |
 |---|---|
-| `ENOENT ... (cmd): 'tree-sitter'` | Chưa có tree-sitter CLI. Chạy `:MasonInstall tree-sitter-cli` rồi `:TSInstallAll` |
-| `module 'nvim-treesitter.configs' not found` | Ai đó đổi treesitter về nhánh `master`. Config này dùng `main`, không có module đó |
-| `attempt to call method 'range' (a nil value)` khi mở `.md` | Dấu hiệu đang chạy nhánh `master` trên Neovim ≥ 0.11. Kiểm tra `branch = 'main'` trong `treesitter.lua` |
-| Không tô màu cú pháp | Parser chưa cài. `:TSInstallAll`, hoặc `:checkhealth vim.treesitter` |
-| LSP JavaScript không cài được | Chưa có `node` / `npm` |
-| Parser treesitter không biên dịch | Chưa có `gcc` |
-| `Too many rounds of missing plugins` | Một plugin build lỗi lặp vô hạn. Xem `:Lazy` để biết cái nào |
-| Icon hiện ô vuông | Terminal chưa dùng Nerd Font |
-| Màu trông sai | Terminal chưa bật true color |
+| `ENOENT ... (cmd): 'tree-sitter'` | No tree-sitter CLI. Run `:MasonInstall tree-sitter-cli`, then `:TSInstallAll` |
+| `module 'nvim-treesitter.configs' not found` | Someone moved treesitter back to the `master` branch. This config uses `main`, which has no such module |
+| `attempt to call method 'range' (a nil value)` when opening a `.md` | A sign the `master` branch is running on Neovim ≥ 0.11. Check for `branch = 'main'` in `treesitter.lua` |
+| No syntax highlighting | The parser is not installed. `:TSInstallAll`, or `:checkhealth vim.treesitter` |
+| The JavaScript LSPs will not install | No `node` / `npm` |
+| Treesitter parsers will not compile | No `gcc` |
+| `Too many rounds of missing plugins` | A plugin's build is failing over and over. Check `:Lazy` to see which |
+| Icons show as empty boxes | The terminal is not using a Nerd Font |
+| The colours look wrong | The terminal does not have true colour on |

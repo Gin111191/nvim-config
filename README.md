@@ -1,12 +1,12 @@
 # nvim-config
 
-Config Neovim chạy trên **macOS, Linux và WSL**. Màu khớp với
-[wezterm-config](https://github.com/Gin111191/wezterm-config) — cùng bảng Dusk-Navy.
+A Neovim config that runs on **macOS, Linux and WSL**. Its colours match
+[wezterm-config](https://github.com/Gin111191/wezterm-config) — the same Dusk-Navy palette.
 
-Dựa trên [hendrikmi/neovim-kickstart-config](https://github.com/hendrikmi/neovim-kickstart-config)
-(vốn dựa trên [kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim)).
+Based on [hendrikmi/neovim-kickstart-config](https://github.com/hendrikmi/neovim-kickstart-config)
+(itself based on [kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim)).
 
-Phím tắt đầy đủ: **[CHEATSHEET.md](CHEATSHEET.md)**
+Every key binding: **[CHEATSHEET.md](CHEATSHEET.md)**
 
 > **Take [tmux-config](https://github.com/Gin111191/tmux-config) with this one.** 24-bit
 > colour is arranged across both repos: tmux decides whether to tell Neovim the terminal
@@ -15,125 +15,129 @@ Phím tắt đầy đủ: **[CHEATSHEET.md](CHEATSHEET.md)**
 
 ---
 
-## Cài đặt
+## Install
 
 ```sh
 git clone https://github.com/Gin111191/nvim-config ~/.local/share/nvim-config
 ~/.local/share/nvim-config/install.sh
 ```
 
-Script tự: nhận diện hệ điều hành → kiểm tra Neovim và công cụ đi kèm → **sao lưu config cũ**
-→ symlink vào `~/.config/nvim` → tải plugin, cài LSP, biên dịch parser.
+The script does it all: identify the operating system → check Neovim and the supporting tools →
+**back up the old config** → symlink it into `~/.config/nvim` → download the plugins, install the
+LSPs, compile the parsers.
 
-Xem trước không thay đổi gì: `./install.sh --dry-run`
+To see what it would do without changing anything: `./install.sh --dry-run`
 
-### Yêu cầu
+### Requirements
 
-| | Bắt buộc? | Thiếu thì sao |
+| | Required? | What breaks without it |
 |---|---|---|
-| **Neovim ≥ 0.12** | Có | `vim.lsp.config()` cần ≥ 0.11; **nvim-treesitter nhánh `main` cần ≥ 0.12** |
-| `git`, `curl`, `unzip`, `tar` | Có | lazy.nvim, Mason và treesitter không tải được |
-| `gcc` | Có | Không biên dịch được parser treesitter |
-| `tree-sitter` CLI ≥ 0.26.1 | Có | Nhánh `main` biên dịch parser bằng CLI này. **Mason tự cài** — không cần làm gì |
-| **`node`, `npm`** | Nên có | Các LSP viết bằng JS (typescript, json, css, html, tailwind, eslint_d, prettier) **không cài được** |
-| **Nerd Font** | Nên có | Icon hiện thành ô vuông |
-| Terminal true color | Nên có | Màu sai |
+| **Neovim ≥ 0.12** | Yes | `vim.lsp.config()` needs ≥ 0.11; **nvim-treesitter's `main` branch needs ≥ 0.12** |
+| `git`, `curl`, `unzip`, `tar` | Yes | lazy.nvim, Mason and treesitter cannot download |
+| `gcc` | Yes | treesitter parsers cannot be compiled |
+| `tree-sitter` CLI ≥ 0.26.1 | Yes | The `main` branch compiles parsers with this CLI. **Mason installs it** — nothing to do |
+| **`node`, `npm`** | Recommended | The LSPs written in JS (typescript, json, css, html, tailwind, eslint_d, prettier) **cannot install** |
+| **A Nerd Font** | Recommended | Icons show as empty boxes |
+| A true-colour terminal | Recommended | Wrong colours |
 
-`install.sh` kiểm tra và báo rõ thiếu cái nào.
-
----
-
-## Có gì
-
-**Tìm kiếm** — Telescope: `Space+sf` tìm file, `Space+sg` tìm chữ trong cả dự án.
-**Cây thư mục** — Neo-tree: `Space+e`.
-**Hiểu code** — LSP + Mason (tự tải language server) + treesitter (tô màu theo cú pháp thật).
-**Gợi ý khi gõ** — nvim-cmp, nguồn từ LSP, buffer, đường dẫn, snippet.
-**Format & lint** — none-ls chạy prettier, eslint_d, shfmt khi lưu file.
-**Git** — gitsigns (dấu thay đổi ở cột trái) + fugitive (`:Git commit`).
-**Học phím** — which-key: bấm `Space` đợi 300ms là hiện bảng gợi ý.
-**Đi lại chung với tmux** — `Ctrl+h/j/k/l` nhảy qua cả cửa sổ nvim lẫn pane tmux; chia cửa sổ và đổi kích thước dùng chung ký hiệu với [tmux-config](https://github.com/Gin111191/tmux-config).
-**Markdown** — render-markdown.nvim: mở file `.md` là tự dựng hình (tiêu đề, bảng, checkbox, khối code).
-
-44 plugin, ghim phiên bản trong `lazy-lock.json`.
+`install.sh` checks for each and says plainly what is missing.
 
 ---
 
-## Cấu trúc
+## What it does
+
+**Searching** — Telescope: `Space+sf` finds a file, `Space+sg` finds text across the whole project.
+**File tree** — Neo-tree: `Space+e`.
+**Understanding code** — LSP + Mason (downloads the language servers) + treesitter (highlighting from a real syntax tree).
+**Completion** — nvim-cmp, sourced from the LSP, the buffer, paths and snippets.
+**Format & lint** — none-ls runs prettier, eslint_d and shfmt on save.
+**Git** — gitsigns (change marks in the left column) + fugitive (`:Git commit`).
+**Learning the keys** — which-key: press `Space`, wait 300ms, and the hint panel appears.
+**Moving around with tmux** — `Ctrl+h/j/k/l` crosses both nvim windows and tmux panes; splitting and resizing share their symbols with [tmux-config](https://github.com/Gin111191/tmux-config).
+**Markdown** — render-markdown.nvim: opening a `.md` file renders it in place (headings, tables, checkboxes, code blocks).
+
+44 plugins, with versions pinned in `lazy-lock.json`.
+
+---
+
+## Layout
 
 ```
-init.lua                    nạp core rồi liệt kê 14 nhóm plugin
-lua/core/options.lua        43 tuỳ chọn cơ bản
-lua/core/keymaps.lua        leader = Space, phím tắt chung
-lua/core/snippets.lua       cách hiển thị lỗi (tên file kế thừa từ bản gốc, không chứa snippet)
-lua/core/theme-source.lua   đọc theme.lua của WezTerm
-lua/plugins/*.lua           mỗi file một nhóm plugin
-lazy-lock.json              KHOÁ PHIÊN BẢN — đừng xoá, xem mục dưới
+init.lua                    loads core, then lists the 14 plugin groups
+lua/core/options.lua        43 basic options
+lua/core/keymaps.lua        leader = Space, the general key bindings
+lua/core/snippets.lua       how errors are displayed (the filename is inherited from the
+                            original config; it holds no snippets)
+lua/core/theme-source.lua   reads WezTerm's theme.lua
+lua/plugins/*.lua           one file per plugin group
+lazy-lock.json              THE VERSION LOCK — do not delete, see below
 ```
 
-### Đừng xoá `lazy-lock.json`
+### Do not delete `lazy-lock.json`
 
-File này ghim từng plugin ở đúng commit đã chạy được. Xoá đi rồi cài lại trên máy khác
-sẽ lấy bản mới nhất của mọi plugin, và không có gì bảo đảm chúng còn hợp nhau.
-Chạy `:Lazy update` xong nhớ commit lại file này.
+This file pins every plugin at the exact commit that was known to work. Delete it, reinstall on
+another machine, and you get the newest version of every plugin with no guarantee they still fit
+together. After running `:Lazy update`, remember to commit this file again.
 
-### Treesitter dùng nhánh `main`
+### Treesitter uses the `main` branch
 
-`nvim-treesitter` có hai nhánh, khác nhau hoàn toàn:
+`nvim-treesitter` has two branches, and they are completely different:
 
 | | `master` | `main` |
 |---|---|---|
-| Trạng thái | **Đã lưu trữ**, commit cuối 2026-03-23 | Đang bảo trì |
+| Status | **Archived**, last commit 2026-03-23 | Maintained |
 | Neovim | ≤ 0.10 | **≥ 0.12** |
-| Cấu hình | "modules": `ensure_installed`, `highlight`, `indent` | Tự gọi `install()` và `vim.treesitter.start()` |
-| Biên dịch parser | `gcc` trực tiếp | **`tree-sitter` CLI** |
-| Parser nằm ở | thư mục plugin | `~/.local/share/nvim/site/parser` |
+| Configuration | "modules": `ensure_installed`, `highlight`, `indent` | Call `install()` and `vim.treesitter.start()` yourself |
+| Compiling parsers | `gcc` directly | **the `tree-sitter` CLI** |
+| Parsers live in | the plugin directory | `~/.local/share/nvim/site/parser` |
 
-Config này dùng `main`. Lý do: nhánh `master` đăng ký directive
-`set-lang-from-info-string!` theo API cũ (`match[id]` là MỘT node), nhưng từ Neovim 0.11
-`match[id]` là DANH SÁCH node. Hậu quả là **mọi lần parse markdown đều vỡ** với
-`attempt to call method 'range' (a nil value)` — hỏng cả tô màu trong khối ```code
-lẫn render-markdown. Nhánh `main` bỏ hẳn file gây lỗi và dùng query có sẵn của Neovim.
+This config uses `main`. The reason: the `master` branch registers the
+`set-lang-from-info-string!` directive against the old API (`match[id]` is ONE node), but from
+Neovim 0.11 `match[id]` is a LIST of nodes. The result is that **every markdown parse breaks**
+with `attempt to call method 'range' (a nil value)` — taking out both the highlighting inside ```code
+blocks and render-markdown. The `main` branch drops the offending file entirely and uses Neovim's
+own queries.
 
-Đổi danh sách ngôn ngữ: sửa `LANGUAGES` ở đầu `lua/plugins/treesitter.lua`, rồi `:TSInstallAll`.
-
----
-
-## Màu — đồng bộ với WezTerm
-
-`lua/plugins/colortheme.lua` chứa nguyên 16 màu **Dusk-Navy** chép từ `CUSTOM_SCHEMES`
-trong [wezterm.lua](https://github.com/Gin111191/wezterm-config/blob/main/wezterm.lua).
-
-Nền để **trong suốt** cho gradient và độ mờ của WezTerm hiện xuyên qua.
-
-`lua/core/theme-source.lua` đọc `theme.lua` của WezTerm để biết đang dùng scheme nào.
-Trong WSL nó tự dò sang phía Windows (`/mnt/c/Users/*/.config/wezterm/theme.lua`).
-Bấm `Space + t + t` trong nvim để xem đang đọc từ đâu.
-
-Hệ điều hành chuyển sang chế độ sáng thì nvim đổi sang **Everforest Light Medium**,
-khớp với `light` trong `theme.lua`.
-
-**Đổi màu:** sửa bảng `DUSK_NAVY` trong `colortheme.lua` cho khớp `wezterm.lua`. Hai nơi,
-sửa cả hai.
+To change the list of languages: edit `LANGUAGES` at the top of `lua/plugins/treesitter.lua`, then
+run `:TSInstallAll`.
 
 ---
 
-## Khác gì bản gốc hendrikmi
+## Colours — kept in step with WezTerm
 
-| | hendrikmi | Bản này |
+`lua/plugins/colortheme.lua` holds the 16 **Dusk-Navy** colours verbatim, copied from
+`CUSTOM_SCHEMES` in [wezterm.lua](https://github.com/Gin111191/wezterm-config/blob/main/wezterm.lua).
+
+The background is left **transparent** so WezTerm's gradient and opacity show through.
+
+`lua/core/theme-source.lua` reads WezTerm's `theme.lua` to find out which scheme is in use.
+Inside WSL it probes the Windows side by itself (`/mnt/c/Users/*/.config/wezterm/theme.lua`).
+Press `Space + t + t` in nvim to see where it is reading from.
+
+When the operating system switches to light mode, nvim switches to **Everforest Light Medium**,
+matching `light` in `theme.lua`.
+
+**To change the colours:** edit the `DUSK_NAVY` table in `colortheme.lua` to match `wezterm.lua`.
+Two places, both need changing.
+
+---
+
+## How it differs from hendrikmi's original
+
+| | hendrikmi | This one |
 |---|---|---|
-| Theme | Nord cố định | **Dusk-Navy**, khớp WezTerm; tự đổi sang Everforest khi hệ thống sang chế độ sáng |
-| `lualine` | `theme = 'nord'` | `theme = 'auto'` — bám theo colorscheme |
-| `bufferline` | Vạch ngăn `#434C5E` (màu Nord) | `#3D4A6B` (`selection_bg` của Dusk-Navy) |
-| `nvim-treesitter` | Chỉ ghim qua `lazy-lock.json` | Ghim thêm `branch = 'master'` ngay trong spec |
-| Markdown | — | **render-markdown.nvim** dựng hình file `.md` ngay trong nvim |
-| `nvim-treesitter` | Nhánh `master` (đã lưu trữ, vỡ khi parse markdown trên Neovim ≥ 0.11) | **Nhánh `main`** — viết lại theo API mới, hết lỗi tận gốc |
-| `image.nvim` | Bật | **Tắt** — cần `luarocks`, thiếu thì lazy build lặp vô hạn rồi báo `Too many rounds of missing plugins`. Bật lại bằng `enabled = true` sau khi cài luarocks |
-| Cài đặt | Clone thủ công | `install.sh` đa nền tảng, có sao lưu và kiểm tra công cụ |
-| Tài liệu | README tiếng Anh | README + CHEATSHEET tiếng Việt |
+| Theme | Nord, fixed | **Dusk-Navy**, matching WezTerm; switches to Everforest when the system goes light |
+| `lualine` | `theme = 'nord'` | `theme = 'auto'` — follows the colorscheme |
+| `bufferline` | Separator `#434C5E` (a Nord colour) | `#3D4A6B` (Dusk-Navy's `selection_bg`) |
+| `nvim-treesitter` | Pinned only through `lazy-lock.json` | Also pinned with `branch = 'master'` in the spec itself |
+| Markdown | — | **render-markdown.nvim** renders `.md` files inside nvim |
+| `nvim-treesitter` | The `master` branch (archived, breaks parsing markdown on Neovim ≥ 0.11) | **The `main` branch** — rewritten against the new API, the bug gone at the root |
+| `image.nvim` | On | **Off** — it needs `luarocks`, and without it lazy rebuilds endlessly and reports `Too many rounds of missing plugins`. Turn it back on with `enabled = true` once luarocks is installed |
+| Installing | Clone it by hand | A cross-platform `install.sh`, with backups and a tool check |
+| Documentation | README only | README + a full CHEATSHEET |
 
-## Ghi công
+## Credits
 
 [hendrikmi/neovim-kickstart-config](https://github.com/hendrikmi/neovim-kickstart-config) ·
 [kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim) (MIT) ·
-bảng màu Dusk-Navy port từ profile Terminal.app cùng tên.
+the Dusk-Navy palette, ported from the Terminal.app profile of the same name.
