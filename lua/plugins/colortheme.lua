@@ -68,6 +68,12 @@ return {
       local function apply()
         if source.is_dark() then
           require("base16-colorscheme").setup(DUSK_NAVY)
+          -- base16 gives CursorLineNr the same fg as LineNr (base04), so the current
+          -- line's number was told apart only by its background. Merge in base09 so it
+          -- reads at a glance against the relative numbers either side.
+          local cur = vim.api.nvim_get_hl(0, { name = "CursorLineNr", link = false })
+          cur.fg, cur.ctermfg, cur.bold = DUSK_NAVY.base09, DUSK_NAVY.cterm09, true
+          vim.api.nvim_set_hl(0, "CursorLineNr", cur)
         else
           -- Light background: WezTerm uses "Everforest Light Medium (Gogh)".
           vim.o.background = "light"
