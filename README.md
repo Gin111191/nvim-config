@@ -8,6 +8,11 @@ Dựa trên [hendrikmi/neovim-kickstart-config](https://github.com/hendrikmi/neo
 
 Phím tắt đầy đủ: **[CHEATSHEET.md](CHEATSHEET.md)**
 
+> **Take [tmux-config](https://github.com/Gin111191/tmux-config) with this one.** 24-bit
+> colour is arranged across both repos: tmux decides whether to tell Neovim the terminal
+> has it, and this repo carries the 256-colour palette for when it does not. Install only
+> one and the colours break in a terminal without 24-bit colour, such as macOS Terminal.app.
+
 ---
 
 ## Cài đặt
