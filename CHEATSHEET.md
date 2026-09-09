@@ -75,7 +75,9 @@ While inside the tree:
 | `Space + \|` | Split the window **vertically** (tmux: `Prefix + \|`) |
 | `Space + -` | Split the window **horizontally** (tmux: `Prefix + -`) |
 | **`Ctrl + h/j/k/l`** | **Jump between windows — and straight on into a tmux pane** |
-| `Space + H/J/K/L` | Resize (tmux: `Prefix + H/J/K/L`) |
+| `Space + h/j/k/l` | Resize by **5** (tmux: `Prefix + h/j/k/l`) |
+| `Ctrl + ←/↓/↑/→` | Resize by **1** — hold to repeat |
+| `Ctrl+w` then `>` `<` `+` `-` | Resize by **2**; a count multiplies it (`3 Ctrl+w >` = 6) |
 | `Space + s + e` | Make the windows equal in size |
 | `Space + x + s` | Close the current window |
 | `Space + t + o` / `t + x` | Open / close a tab |
@@ -96,10 +98,17 @@ While inside the tree:
 | Move between boxes | `Ctrl + h/j/k/l` | `Ctrl + h/j/k/l` — **the same keys** |
 | Split vertically | `Space + \|` | `Prefix + \|` |
 | Split horizontally | `Space + -` | `Prefix + -` |
-| Resize | `Space + H/J/K/L` | `Prefix + H/J/K/L` |
+| Resize by 5 | `Space + h/j/k/l` | `Prefix + h/j/k/l` |
+| Resize by 1 | `Ctrl + arrow` | `Prefix + Ctrl + arrow` ⚠️ |
 
 ⚠️ One place where the **letters match but the meaning does not**: `Space + x` in nvim closes a
 **buffer**, while `Prefix + x` in tmux closes a **pane**.
+
+⚠️ The 1-cell resize is the one key that cannot match. Neovim uses a **bare** `Ctrl+arrow`; if tmux
+bound the bare key it would swallow it and Neovim would never see it, so tmux keeps its prefix there.
+
+**Nothing to resize?** A window can only take space from a neighbour. With a single full-screen
+window every resize key does nothing and says nothing — open a split first.
 
 ---
 
@@ -160,7 +169,7 @@ The left column shows the marks by itself: `+` added, `~` changed, `_` deleted.
 | `x` | Delete 1 character, **without overwriting the clipboard** |
 | `<` `>` (visual) | Indent, **keeping the selection** |
 | `p` (visual) | Paste **without losing what was copied** |
-| `Space + l + w` | Toggle line wrapping |
+| `Space + w` | Toggle line wrapping |
 
 ## Selecting a block — text objects
 
