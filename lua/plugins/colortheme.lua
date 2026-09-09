@@ -79,7 +79,12 @@ return {
             "Normal", "NormalNC", "NormalFloat", "FloatBorder",
             "SignColumn", "LineNr", "EndOfBuffer", "TabLineFill",
           }) do
-            vim.api.nvim_set_hl(0, group, { bg = "none", ctermbg = "none" })
+            -- Merge, do not replace: nvim_set_hl overwrites the whole group, so
+            -- passing only bg threw the foreground away too (Normal, LineNr and
+            -- SignColumn came out empty).
+            local hl = vim.api.nvim_get_hl(0, { name = group, link = false })
+            hl.bg, hl.ctermbg = "none", "none"
+            vim.api.nvim_set_hl(0, group, hl)
           end
         end
       end
