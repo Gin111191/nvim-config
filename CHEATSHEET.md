@@ -20,6 +20,10 @@ Opening 10 files = **10 buffers**, but the screen shows only 1. The other nine a
 
 The strip of tabs along the top (`bufferline`) exists to **show** the buffer list that Vim otherwise hides.
 
+⚠️ **Those boxes are buffers, not tabs** — `mode = 'buffers'` in `lua/plugins/bufferline.lua:10`.
+Real tab pages are not drawn up there at all (`show_tab_indicators = false`, line 33), so opening a
+tab changes nothing you can see. `:tabs` is the only way to find out how many you have.
+
 ---
 
 ## Files & searching — Telescope
@@ -70,7 +74,7 @@ While inside the tree:
 | Key | What it does |
 |---|---|
 | **`Tab`** / **`Shift+Tab`** | Next / previous buffer |
-| **`Space + x`** | **Close the buffer for good** |
+| **`Space + x`** | **Close the buffer** — ⚠️ runs `:bdelete!`, unsaved changes are lost |
 | `Space + b` | A new empty buffer |
 | `Space + \|` | Split the window **vertically** (tmux: `Prefix + \|`) |
 | `Space + -` | Split the window **horizontally** (tmux: `Prefix + -`) |
@@ -109,6 +113,52 @@ bound the bare key it would swallow it and Neovim would never see it, so tmux ke
 
 **Nothing to resize?** A window can only take space from a neighbour. With a single full-screen
 window every resize key does nothing and says nothing — open a split first.
+
+---
+
+## Buffers & tabs — the rest of the keys
+
+The four keys in the table above cover the daily work. These are the ones worth adding when that
+starts to feel slow.
+
+### Buffers — stock Vim, nothing installed
+
+| Key / command | What it does |
+|---|---|
+| **`Ctrl + ^`** | **Back to the buffer you were just in** — press again to return |
+| `:b part-of-name` | Jump to a buffer by any part of its name (`Tab` completes it) |
+| `:ls` | Print the buffer list, with each buffer's number |
+| `:b 3` | Jump to buffer number 3 |
+| `:bd` | Close the buffer, but **stop and warn** if it has unsaved changes |
+
+Almost all real work is bouncing between two files. `Ctrl + ^` does that in one key — pressing `Tab`
+nine times to get back where you were is wasted motion. It is the one to learn first.
+
+⚠️ **`Space + x` is `:bdelete!`, with the bang.** The bang means *do it anyway*: unsaved changes go
+in the bin, no question asked. `:bd` is the same thing without the bang — it stops and warns you.
+
+### Buffers — bufferline's own commands
+
+Installed, but no key is bound to any of them.
+
+| Command | What it does |
+|---|---|
+| `:BufferLinePick` | Draws a letter on each box in the top strip — press that letter to jump there |
+| `:BufferLineCloseOthers` | Close every buffer except this one |
+| `:BufferLineMoveNext` / `MovePrev` | Shift the current box left / right, to reorder the strip |
+| `:BufferLineTogglePin` | Pin a buffer so it stays at the front |
+
+### Tabs — stock Vim
+
+Shorter than the `Space + t` keys above, and they take a number.
+
+| Key | What it does |
+|---|---|
+| **`gt`** / **`gT`** | Next / previous tab — two keys, no leader |
+| **`2gt`** | Jump straight to **tab 2**; any number works |
+| `g<Tab>` | Back to the tab you were just in |
+| `:tabs` | **List the tab pages that actually exist** |
+| `:tabfirst` / `:tablast` | First / last tab |
 
 ---
 
@@ -170,6 +220,18 @@ The left column shows the marks by itself: `+` added, `~` changed, `_` deleted.
 | `<` `>` (visual) | Indent, **keeping the selection** |
 | `p` (visual) | Paste **without losing what was copied** |
 | `Space + w` | Toggle line wrapping |
+
+### Reloading
+
+| Command | What it does |
+|---|---|
+| `:e` | Re-read the file from disk — refuses if you have unsaved changes |
+| **`:e!`** | **Re-read from disk, throwing away everything unsaved** |
+| `:checktime` | Reload only if the file changed on disk underneath you |
+| `:source %` | Re-apply the config file you are looking at, without restarting |
+
+⚠️ `:source %` is honest only for plain options and keymaps. A plugin spec in `lua/plugins/` will
+not fully re-apply that way — quit and reopen Neovim for those.
 
 ## Selecting a block — text objects
 
