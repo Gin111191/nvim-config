@@ -216,6 +216,35 @@ selected (`viw` then `rx` on "hello" gives "xxxxx"). Use `c` to replace a select
 
 ---
 
+## Folding — collapsing blocks of code
+
+Folds come from **treesitter**, so a "block" is whatever the language says a block is: a function,
+an `if`, a Lua table. In a `.md` file it is a `#` heading plus everything under it.
+
+| Key | What it does |
+|---|---|
+| **`za`** | **Toggle the block the cursor sits in** — the one key worth memorising |
+| `zo` / `zc` | Open it / close it, if you would rather not toggle |
+| `zA` `zO` `zC` | The same three, but also every block nested inside |
+| **`zR`** / **`zM`** | **Open every fold in the file** / close every fold |
+| `zj` / `zk` | Jump to the next / previous fold |
+| `zv` | Open just enough to show the line the cursor is on |
+
+> **Why a file opens with everything already shut:** `lua/plugins/treesitter.lua` switches folding
+> on, and nothing sets `foldlevel`, so Neovim's default of `0` applies — and level 0 means every
+> fold closed. To have files open flat instead, add `vim.o.foldlevelstart = 99` to
+> `lua/core/options.lua`.
+
+⚠️ **A paragraph cannot be folded.** The syntax tree has no such thing, so there is nothing there to
+fold. To fold a chunk you choose by hand: run `:setlocal foldmethod=manual` first, then select the
+lines and press `zf`. Skip that first step and `zf` fails with `E350` — `foldmethod=expr` refuses
+folds made by hand.
+
+⚠️ Text disappearing in a `.md` file is **not** folding — that is *conceal*, see
+[Markdown](#markdown).
+
+---
+
 ## Appearance
 
 | Key | What it does |
