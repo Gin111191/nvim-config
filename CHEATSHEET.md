@@ -41,7 +41,33 @@ tab changes nothing you can see. `:tabs` is the only way to find out how many yo
 | `Space + s + r` | Reopen the previous search |
 | `Space + s + s` | List every Telescope command |
 
-Inside a Telescope window: `Ctrl+n`/`Ctrl+p` move up and down, `Enter` opens, `Ctrl+v` opens in a vertical split, `Esc` leaves.
+Inside a Telescope window: `Ctrl+n`/`Ctrl+p` **or** `Ctrl+j`/`Ctrl+k` move up and down, `Enter` **or**
+`Ctrl+l` opens, `Ctrl+v` opens in a vertical split, `Esc` leaves. (`Ctrl+j/k/l` are this config's
+addition, `telescope.lua:53-57` — the same h/j/k/l fingers as everywhere else.)
+
+### Where does it search?
+
+**Neither "this folder" nor "everywhere" — it searches Neovim's working directory**, the folder you
+were standing in when you typed `nvim`. It does **not** move when you open a file somewhere else.
+
+```
+cd ~/my-project && nvim   →  Space + s + f searches the whole project   ✅
+nvim   (from your home)   →  it tries to search all of ~                ⚠️ slow
+```
+
+| Command | What it does |
+|---|---|
+| **`:pwd`** | **Show where the search will start** — the live answer, never a guess |
+| `:cd path` | Move it, for every window |
+| `:lcd path` | Move it, for this window only |
+
+What it skips (`lua/plugins/telescope.lua:60-64`): `node_modules`, `.git`, `.venv`, and anything in
+`.gitignore` — Telescope shells out to `fd`, and `fd` obeys `.gitignore`.
+
+⚠️ `hidden = true` is set, so dotfiles **are** listed — `.env` will appear in the picker.
+
+⚠️ Pressing `.` in Neo-tree sets the **tree's** root. Do not assume that moved Telescope with it —
+type `:pwd` and read the answer.
 
 ## File tree — Neo-tree
 
@@ -63,9 +89,26 @@ While inside the tree:
 | `w` | Choose which window to open into |
 | `P` | Preview, without leaving the tree |
 | `H` | Show/hide hidden files |
-| `/` | Quick filter by name |
+| **`/`** | **Type to filter live** — `Ctrl+n`/`Ctrl+p` or ↑↓ move, `Enter` opens, `Esc` cancels |
+| `#` | The same, fuzzy-sorted — `bmed` finds `bom-editor` |
+| `D` | Filter **directories** only |
+| `f` | Type, press `Enter`, and the filter **sticks** — the tree stays narrowed |
+| **`Ctrl + x`** | **Clear a stuck filter** — the way back out of `f` |
+| `[g` / `]g` | Jump to the previous / next **git-modified** file |
 | `z` | Collapse every branch |
 | `?` | Show all of neo-tree's keys |
+
+⚠️ **In the tree, `/` filters — it does not search.** In the editor `/` finds a match and `n` jumps
+to the next one. In the tree it *hides* everything that does not match, so there is nothing to jump
+between and `n` / `N` do nothing.
+
+**To jump to the file you are editing: `\` (backslash)** — it runs `:Neotree reveal`
+(`neotree.lua:308`), opening the folders and putting the cursor on your file. You have to press it
+because `follow_current_file.enabled = false` (`neotree.lua:218`); set that to `true` and the tree
+follows you by itself.
+
+For *finding* a file, `Space + s + f` beats the tree — type part of the name, press `Enter`. The
+tree is better for seeing where things sit, and for `a` `d` `r` `m` on files.
 
 ---
 
