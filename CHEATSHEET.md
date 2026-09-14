@@ -4,6 +4,9 @@ Leader = **`Space`**. `Space + e` means press `Space`, then press `e`.
 
 > **Forgotten a key?** Press `Space` and **wait 300ms** — `which-key` shows a panel of every key
 > that could come next. Or `Space + s + k` to search the whole list of bindings.
+>
+> Shell keys (fzf, rg, vi-mode) are in `~/.config/zsh/CHEATSHEET.md`, tmux keys in
+> `~/.local/share/tmux-config/CHEATSHEET.md`.
 
 ---
 
@@ -40,10 +43,36 @@ tab changes nothing you can see. `:tabs` is the only way to find out how many yo
 | `Space + s + k` | **Search the list of key bindings** |
 | `Space + s + r` | Reopen the previous search |
 | `Space + s + s` | List every Telescope command |
+| `Space + /` | Fuzzy-search **inside the current file** |
+| `Space + s + /` | Grep, but only **in the files already open** |
 
-Inside a Telescope window: `Ctrl+n`/`Ctrl+p` **or** `Ctrl+j`/`Ctrl+k` move up and down, `Enter` **or**
-`Ctrl+l` opens, `Ctrl+v` opens in a vertical split, `Esc` leaves. (`Ctrl+j/k/l` are this config's
-addition, `telescope.lua:53-57` — the same h/j/k/l fingers as everywhere else.)
+### Inside a Telescope window
+
+It opens in Insert mode, ready for typing. `Esc` once drops to Normal mode, where `j`/`k` move;
+`Esc` again closes.
+
+| Key | What it does |
+|---|---|
+| `Ctrl+n` / `Ctrl+p` **or** `Ctrl+j` / `Ctrl+k` | Down / up the results |
+| `Enter` **or** `Ctrl+l` | Open |
+| `Ctrl+x` / `Ctrl+v` / `Ctrl+t` | Open in a horizontal split / a vertical split / a new tab |
+| `Ctrl+u` / `Ctrl+d` | Scroll the preview up / down |
+| `Tab` / `Shift+Tab` | Mark several results |
+| `Ctrl+q` | Send every result to the quickfix list (`Alt+q`: only the marked ones) |
+| `Ctrl+/` (Insert) · `?` (Normal) | Show every key this picker knows |
+| `Ctrl+c` | Close |
+
+`Ctrl+j/k/l` are this config's addition (`telescope.lua:53-57`) — the same h/j/k/l fingers as
+everywhere else. Telescope's own `Ctrl+k` (scroll the preview sideways) is gone as a result.
+
+The query box understands fzf syntax, from `telescope-fzf-native`:
+
+| Type | Matches |
+|---|---|
+| `abc` | fuzzy — `a`, `b`, `c` in that order, gaps allowed |
+| `'abc` | exactly `abc`, somewhere |
+| `^abc` / `abc$` | starts with / ends with `abc` — `.html$` keeps only HTML files |
+| `!abc` | does **not** contain `abc` |
 
 ### Where does it search?
 
@@ -61,10 +90,22 @@ nvim   (from your home)   →  it tries to search all of ~                ⚠️
 | `:cd path` | Move it, for every window |
 | `:lcd path` | Move it, for this window only |
 
-What it skips (`lua/plugins/telescope.lua:60-64`): `node_modules`, `.git`, `.venv`, and anything in
-`.gitignore` — Telescope shells out to `fd`, and `fd` obeys `.gitignore`.
+What it skips (`lua/plugins/telescope.lua:60-71`): anything in `.gitignore` — Telescope shells out to
+`fd` and `rg`, and both obey it — plus every path containing `node_modules`, `.git` or `.venv`.
 
-⚠️ `hidden = true` is set, so dotfiles **are** listed — `.env` will appear in the picker.
+⚠️ Those three are Lua patterns matched **anywhere in the path**, so `%.git` also hides `.github/`,
+`.gitignore` and `.gitattributes`.
+
+⚠️ `hidden = true` is set, so dotfiles **are** listed — a `.env` that `.gitignore` does not cover
+will appear in the picker.
+
+To reach what it skips:
+
+| Command | Finds |
+|---|---|
+| `:Telescope find_files no_ignore=true` | Files `.gitignore` hides, such as a `.env` |
+| `:Telescope find_files cwd=node_modules` | Files inside `node_modules` — paths are then relative to it, so the pattern no longer matches |
+| `:Telescope live_grep cwd=node_modules` | Text inside `node_modules`, the same way |
 
 ⚠️ Pressing `.` in Neo-tree sets the **tree's** root. Do not assume that moved Telescope with it —
 type `:pwd` and read the answer.
@@ -122,6 +163,7 @@ tree is better for seeing where things sit, and for `a` `d` `r` `m` on files.
 | `Space + \|` | Split the window **vertically** (tmux: `Prefix + \|`) |
 | `Space + -` | Split the window **horizontally** (tmux: `Prefix + -`) |
 | **`Ctrl + h/j/k/l`** | **Jump between windows — and straight on into a tmux pane** |
+| `Ctrl + \` | Back to the window you were just in (Neovim only — tmux does not bind it) |
 | `Space + h/j/k/l` | Resize by **5** (tmux: `Prefix + h/j/k/l`) |
 | `Ctrl + ←/↓/↑/→` | Resize by **1** — hold to repeat |
 | `Ctrl+w` then `>` `<` `+` `-` | Resize by **2**; a count multiplies it (`3 Ctrl+w >` = 6) |
@@ -224,27 +266,67 @@ Only active when the open file has a language server (Mason already installs the
 | `[d` / `]d` | Previous / next problem |
 | `Space + d` | Show the problem at the cursor in full |
 | `Space + q` | Open the list of every problem |
+| `Space + t + h` | Toggle inlay hints (types written inline), when the server offers them |
+| `Ctrl + s` in Insert mode | Show the parameters of the function being typed |
+
+Neovim's own LSP keys work too: `grn` rename · `gra` code action · `grr` references ·
+`gri` implementation · `grt` type definition · `gO` symbols in this file.
+
+⚠️ `gr` fires after a **300ms pause**: Neovim's `grr` `grn` … also begin with `gr`, so it waits to
+see whether another key follows. Type `grr` for the same list with no pause.
 
 ## Completion
 
 | Key | What it does |
 |---|---|
 | `Ctrl + n` / `Ctrl + p` | Down / up the suggestion list |
-| `Enter` | Accept |
+| **`Ctrl + y`** | **Accept** the highlighted suggestion |
+| `Tab` / `Shift + Tab` | Down / up the list — or, with no list open, next / previous slot in a snippet |
 | `Ctrl + Space` | Ask for suggestions by hand |
-| `Tab` | Jump to the next slot in a snippet |
 | `Ctrl + e` | Close the suggestion panel |
+| `Ctrl + b` / `Ctrl + f` | Scroll the documentation shown beside the list |
+| `Ctrl + l` / `Ctrl + h` | Next / previous slot in a snippet |
+
+⚠️ **`Enter` does not accept** — it starts a new line. The `<CR>` mapping is commented out in
+`lua/plugins/autocompletion.lua:99`; uncomment it to make `Enter` accept.
 
 ## Git
 
 | Key / command | What it does |
 |---|---|
-| `:Git` | The git status panel |
+| `:Git` | The git status panel — its keys are below |
 | `:Git commit` / `:Git push` | Commit / push |
+| `:Git blame` | Who last changed each line — `g?` for its keys, `gq` to close |
 | `:Gdiffsplit` | Compare against the committed version |
-| `Space + n + g + s` | Git status as a floating window |
+| `:GBrowse` | Open this file on GitHub (vim-rhubarb) |
+| `Space + n + g + s` | Git status as a floating window (Neo-tree) — its keys are below |
 
-The left column shows the marks by itself: `+` added, `~` changed, `_` deleted.
+**Inside `:Git`** (fugitive), on a file line:
+
+| Key | What it does |
+|---|---|
+| `s` / `u` / `-` | Stage / unstage / toggle between the two |
+| `=` | Show the diff inline, right under the file name |
+| `dv` | Open the diff in a vertical split |
+| `X` | ⚠️ Throw the change away |
+| `cc` / `ca` | Commit / amend the last commit |
+| `o` | Open the file in a split |
+| `g?` | Every key |
+
+**Inside `Space + n + g + s`** (Neo-tree): `ga` stage · `gu` unstage · `A` stage everything ·
+`gc` commit · `gp` push · `gg` commit and push · `gr` ⚠️ revert the file · `q` close.
+
+The left column shows the marks by itself: `+` added, `~` changed, `_` deleted. That is gitsigns;
+no key is bound to it, but its commands are useful:
+
+| Command | What it does |
+|---|---|
+| `:Gitsigns preview_hunk` | Show what changed in the block under the cursor |
+| `:Gitsigns nav_hunk next` / `prev` | Jump to the next / previous changed block |
+| `:Gitsigns stage_hunk` / `reset_hunk` | Stage just that block / ⚠️ throw it away |
+| `:Gitsigns blame_line` | Who changed this line, and in which commit |
+| `:Gitsigns toggle_current_line_blame` | Keep that blame showing at the end of the line |
+| `:Gitsigns diffthis` | Diff this file against the index, side by side |
 
 ---
 
@@ -255,14 +337,22 @@ The left column shows the marks by itself: `+` added, `~` changed, `_` deleted.
 | `Ctrl + s` | Save |
 | `Space + s + n` | Save **without** running the auto-format |
 | `Ctrl + q` | Quit |
-| `gcc` | Comment out the current line |
-| `gc` (visual) | Comment out the selection |
+| `gcc` | Comment / uncomment the current line |
+| `gc` (visual) | Comment / uncomment the selection |
+| `Ctrl + /` or `Ctrl + c` | The same toggle — on the line, or on the selection in Visual mode |
+| `gc` + a motion | Comment a stretch: `gcip` the paragraph, `gc2j` this line and the next two |
 | `Ctrl+d` / `Ctrl+u` | Scroll half a page, **re-centring automatically** |
 | `n` / `N` | Next match, **re-centring automatically** |
 | `x` | Delete 1 character, **without overwriting the clipboard** |
 | `<` `>` (visual) | Indent, **keeping the selection** |
 | `p` (visual) | Paste **without losing what was copied** |
 | `Space + w` | Toggle line wrapping |
+| `[` + `Space` / `]` + `Space` | Add an empty line above / below, staying in Normal mode |
+| `gx` | Open the URL or file path under the cursor |
+| `u` / `Ctrl + r` | Undo / redo |
+
+Yank `y` and paste `p` go through the **system clipboard** (`clipboard = 'unnamedplus'`,
+`lua/core/options.lua:3`): copy in Neovim, paste in the browser, and the other way round.
 
 ### Reloading
 
@@ -315,6 +405,10 @@ Swap `v` for any operator and it acts instead of selecting:
   keep widening.
 
 Same idea beyond brackets: `viw` word · `vip` paragraph · `vis` sentence.
+
+**By syntax rather than by bracket (Neovim 0.12):** `v` then `an` selects the syntax node under the
+cursor; each further `an` grows it to the enclosing node — argument, call, statement, function — and
+`in` shrinks it back. With a selection live, `]n` / `[n` move it to the next / previous node.
 
 ⚠️ `r` on a selection does **not** swap in a word — it stamps one character over every character
 selected (`viw` then `rx` on "hello" gives "xxxxx"). Use `c` to replace a selection with new text.
@@ -417,6 +511,22 @@ cursor is on drops its conceal. `expand`/`contract` add to and subtract from tho
 | `:RenderMarkdown buf_toggle` | Toggle it for the current buffer only |
 | `:RenderMarkdown preview` | Open a preview |
 | `:RenderMarkdown config` | Print the config that differs from the default |
+
+---
+
+## Other plugins — what they do on their own
+
+| Plugin | What you notice | Commands / keys |
+|---|---|---|
+| which-key | Press `Space` and wait — a panel lists every key that can follow | — |
+| todo-comments | `TODO:` `FIXME:` `NOTE:` `HACK:` light up inside comments | `:TodoTelescope` search them all · `:TodoQuickFix` |
+| nvim-autopairs | Typing `(` `[` `{` `"` adds the closing half | — |
+| nvim-colorizer | `#7d9bd4` is painted in its own colour (true-colour terminals only) | `:ColorizerToggle` |
+| indent-blankline | Thin vertical lines mark each indent level | — |
+| vim-sleuth | Indent width is read from the file itself | — |
+| fidget | LSP progress messages in the bottom-right corner | — |
+| none-ls | Formats on save — prettier (html/json/yaml/md), stylua, shfmt, ruff | `Space + s + n` saves without it |
+| alpha | The start screen when `nvim` opens with no file | `e` new file · a number opens that recent file |
 
 ---
 
