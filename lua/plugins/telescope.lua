@@ -58,14 +58,14 @@ return {
         },
       },
       pickers = {
-        -- Hidden and gitignored files are searched too; the excludes go to fd/rg so
-        -- node_modules is never walked, rather than walked and filtered afterwards.
         find_files = {
-          find_command = { 'fd', '--type', 'f', '--hidden', '--no-ignore', '--exclude', '.git', '--exclude', 'node_modules', '--exclude', '.venv' },
+          file_ignore_patterns = { 'node_modules', '%.git', '%.venv' },
+          hidden = true,
         },
         live_grep = {
+          file_ignore_patterns = { 'node_modules', '%.git', '%.venv' },
           additional_args = function(_)
-            return { '--hidden', '--no-ignore', '--glob=!**/.git/**', '--glob=!**/node_modules/**', '--glob=!**/.venv/**' }
+            return { '--hidden' }
           end,
         },
       },

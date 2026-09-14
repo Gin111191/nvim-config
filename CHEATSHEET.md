@@ -61,10 +61,10 @@ nvim   (from your home)   →  it tries to search all of ~                ⚠️
 | `:cd path` | Move it, for every window |
 | `:lcd path` | Move it, for this window only |
 
-What it skips (`lua/plugins/telescope.lua`): only `node_modules`, `.git`, `.venv`. Files in
-`.gitignore` **are** listed — `fd` and `rg` run with `--no-ignore`, for both find_files and live_grep.
+What it skips (`lua/plugins/telescope.lua:60-64`): `node_modules`, `.git`, `.venv`, and anything in
+`.gitignore` — Telescope shells out to `fd`, and `fd` obeys `.gitignore`.
 
-⚠️ `--hidden` is set, so dotfiles **are** listed — `.env` will appear in the picker.
+⚠️ `hidden = true` is set, so dotfiles **are** listed — `.env` will appear in the picker.
 
 ⚠️ Pressing `.` in Neo-tree sets the **tree's** root. Do not assume that moved Telescope with it —
 type `:pwd` and read the answer.
