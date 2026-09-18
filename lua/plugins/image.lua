@@ -49,7 +49,20 @@ return {
       -- An .ico holds several sizes; snacks' default takes frame [0], the smallest (16px).
       -- ponytail: the last frame is the largest in icons written in ascending order (most
       -- tools); an .ico stored largest-first would show its smallest size.
-      convert = { magick = { ico = { '{src}[-1]', '-scale', '1920x1080>' } } },
+      convert = {
+        magick = {
+          ico = { '{src}[-1]', '-scale', '1920x1080>' },
+          -- Kitty refuses any image wider or taller than 10000 px ("Image too large", kitty
+          -- graphics.c) and says nothing, so the buffer just stays blank. snacks caps rasters
+          -- at 1920x1080 but renders pdf/svg at 192 dpi uncapped: a long single-page PDF
+          -- (8100 pt tall) comes out 21314 px. These are snacks' own args plus the cap —
+          -- written in full because a list replaces snacks' default instead of extending it.
+          -- 4096 leaves an A4 page at 192 dpi (1587x2245) untouched and keeps the bytes sent
+          -- down an ssh small; a page that tall shows as a narrow strip at any cap anyway.
+          pdf = { '-density', 192, '{src}[{page}]', '-background', 'white', '-alpha', 'remove', '-trim', '-resize', '4096x4096>' },
+          vector = { '-density', 192, '{src}[{page}]', '-resize', '4096x4096>' },
+        },
+      },
       -- inline = true would draw every reference under its line; float draws only the
       -- one at the cursor. Size is in cells.
       doc = { inline = false, float = true, max_width = 60, max_height = 30 },

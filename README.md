@@ -174,6 +174,10 @@ errors — so check health before hunting for the file.
 - **Kitty started from a shell inside tmux** (typing `kitty` in a WezTerm pane) inherits `TMUX`;
   snacks then wraps images for a tmux that is not there and nothing draws.
   [kitty-config](https://github.com/Gin111191/kitty-config) strips those variables with `env TMUX`.
+- **An image over 10000 px on either side.** Kitty rejects it (`Image too large`) and shows nothing,
+  no error. A long single-page PDF does this at snacks' 192 dpi — 870x8100 pt comes out 21314 px
+  tall — so `lua/plugins/image.lua` caps pdf and svg output at 4096 px. Such a page still shows only
+  as a narrow strip; read it on the Mac.
 - **A blank buffer when going back to an image already open** — upstream bug
   [folke/snacks.nvim#2896](https://github.com/folke/snacks.nvim/issues/2896), patched in
   `lua/plugins/image.lua` until snacks fixes it.
