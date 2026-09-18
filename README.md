@@ -39,6 +39,7 @@ To see what it would do without changing anything: `./install.sh --dry-run`
 | **`node`, `npm`** | Recommended | The LSPs written in JS (typescript, json, css, html, tailwind, eslint_d, prettier) **cannot install** |
 | **A Nerd Font** | Recommended | Icons show as empty boxes |
 | A true-colour terminal | Recommended | Wrong colours |
+| `magick` (ImageMagick) | Images only | `snacks.image` cannot draw anything — see *Images in the terminal* |
 
 `install.sh` checks for each and says plainly what is missing.
 
@@ -63,7 +64,7 @@ To see what it would do without changing anything: `./install.sh --dry-run`
 ## Layout
 
 ```
-init.lua                    loads core, then lists the 14 plugin groups
+init.lua                    loads core, then lists the 15 plugin groups
 lua/core/options.lua        43 basic options
 lua/core/keymaps.lua        leader = Space, the general key bindings
 lua/core/snippets.lua       how errors are displayed (the filename is inherited from the
@@ -132,9 +133,36 @@ Two places, both need changing.
 | `nvim-treesitter` | Pinned only through `lazy-lock.json` | Also pinned with `branch = 'master'` in the spec itself |
 | Markdown | — | **render-markdown.nvim** renders `.md` files inside nvim |
 | `nvim-treesitter` | The `master` branch (archived, breaks parsing markdown on Neovim ≥ 0.11) | **The `main` branch** — rewritten against the new API, the bug gone at the root |
-| `image.nvim` | On | **Off** — it needs `luarocks`, and without it lazy rebuilds endlessly and reports `Too many rounds of missing plugins`. Turn it back on with `enabled = true` once luarocks is installed |
+| `image.nvim` | On | **Off** — it needs `luarocks`, and without it lazy rebuilds endlessly and reports `Too many rounds of missing plugins`. **`snacks.image` does the same job** with nothing but the `magick` binary, so that is what is on instead — see *Images in the terminal* |
 | Installing | Clone it by hand | A cross-platform `install.sh`, with backups and a tool check |
 | Documentation | README only | README + a full CHEATSHEET |
+
+## Images in the terminal
+
+`snacks.image` draws real images in the buffer — markdown links, an image file
+opened directly — by handing them to the terminal over the **kitty graphics
+protocol**. No X server and no display are involved, so it works the same over
+ssh as it does locally, which is the point: kitty on a laptop, nvim on a box
+somewhere else.
+
+What it needs:
+
+| | |
+|---|---|
+| `magick` | ImageMagick does every conversion. `brew install imagemagick`, or your package manager. Nothing renders without it |
+| `TERM=xterm-kitty` **at the far end** | `kitten ssh host` copies the terminfo across for you. Plain `ssh` does not: compile it once on the remote with `curl -fsSL https://raw.githubusercontent.com/kovidgoyal/kitty/master/terminfo/kitty.terminfo \| tic -x -o ~/.terminfo -` |
+| `set -g allow-passthrough on` | Only if you run tmux. Without it tmux swallows the escape sequence and you see nothing |
+
+`:checkhealth snacks` reports which of those it found.
+
+Inside tmux the image is passed through but not tracked, so a scroll or a pane
+resize can strand it. Reopening the buffer redraws it.
+
+A terminal that speaks no graphics protocol at all degrades to nothing, not to
+an error — which is why a missing `magick` looks exactly like a missing image.
+Check health before hunting for the file.
+
+---
 
 ## Credits
 
