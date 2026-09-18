@@ -71,28 +71,16 @@ return {
     },
   },
   config = function(_, opts)
-    -- Behind a tmux, snacks cannot see kitty: its XTVERSION query is answered by tmux, so it
-    -- finds no graphics terminal and draws nothing. Over ssh the tmux may even be on the far
-    -- side (kitty -> tmux on the Mac -> ssh -> here), leaving only TERM=tmux-256color to go on.
-    -- kitty-config exports LC_TERMINAL=kitty, and LC_* is what ssh carries by default; seeing
-    -- it, tell snacks outright. Set only on that signal, so a plain terminal gets no escapes.
-    --
-    -- A tmux on THIS side needs one more question: a server started before kitty attached
-    -- keeps its old environment in every pane, so LC_TERMINAL is missing there — and that is
-    -- the usual way to use a remote tmux (ssh in, `tmux attach`). tmux itself knows which
-    -- terminal the attached client is; snacks asks the same thing when extended-keys is on.
-    local function far_end_is_kitty()
-      if vim.env.LC_TERMINAL == 'kitty' then
-        return true
+    -- Inside tmux, snacks cannot see kitty: its XTVERSION query is answered by tmux, so it
+    -- finds no graphics terminal and draws nothing. tmux itself knows which terminal the
+    -- attached client is — snacks asks the same thing when extended-keys is on — and unlike
+    -- an environment variable the answer is current even in a pane that predates the attach
+    -- (ssh in, `tmux attach`). Only a kitty client sets it, so other terminals get no escapes.
+    if vim.env.TMUX and not vim.env.SNACKS_KITTY then
+      local client = vim.fn.system { 'tmux', 'display-message', '-p', '#{client_termname}' }
+      if vim.v.shell_error == 0 and client:find('kitty', 1, true) then
+        vim.env.SNACKS_KITTY = '1'
       end
-      if vim.env.TMUX then
-        local out = vim.fn.system { 'tmux', 'display-message', '-p', '#{client_termname}' }
-        return vim.v.shell_error == 0 and out:find('kitty', 1, true) ~= nil
-      end
-      return false
-    end
-    if not vim.env.SNACKS_KITTY and far_end_is_kitty() then
-      vim.env.SNACKS_KITTY = '1'
     end
     require('snacks').setup(opts)
     -- Upstream bug folke/snacks.nvim#2896 (closed as stale, not fixed): leaving an image

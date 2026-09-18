@@ -159,23 +159,16 @@ errors — so check health before hunting for the file.
 ### What breaks it
 
 - **Two tmux between nvim and Kitty.** snacks wraps an image for one tmux; a second one swallows it.
-  One tmux is fine on either side — on WSL, or on the Mac with the ssh started inside it — as long
-  as it has `allow-passthrough on` (it is in [tmux-config](https://github.com/Gin111191/tmux-config)).
-  Even then tmux passes the image through without tracking it, so a scroll or a pane resize can
-  strand it; reopening the buffer redraws it.
-- **A tmux hides Kitty.** snacks finds the terminal by asking it (XTVERSION), and a tmux in the
-  way answers `tmux` instead — worse over ssh, where the Mac's tmux leaves WSL nothing but
-  `TERM=tmux-256color`. Result: `:checkhealth snacks` says the terminal has no graphics protocol
-  and nothing is drawn. [kitty-config](https://github.com/Gin111191/kitty-config) exports
-  `LC_TERMINAL=kitty`, ssh carries `LC_*` both ways by default, and `lua/plugins/image.lua` turns
-  that into `SNACKS_KITTY=1`. Inside a tmux on WSL it also asks tmux for `#{client_termname}`,
-  because a tmux server started before kitty attached keeps the old environment in its panes —
-  the usual ssh-in-then-`tmux attach` case, where `LC_TERMINAL` never reaches nvim. On WSL, `echo $LC_TERMINAL` must print `kitty`; if it is empty,
-  kitty was started before that line existed, or the Mac's tmux server was — restart it, or run
-  `tmux set-environment -g LC_TERMINAL kitty` once.
-- **Kitty started from a shell inside tmux** (typing `kitty` in a WezTerm pane) inherits `TMUX`;
-  snacks then wraps images for a tmux that is not there and nothing draws.
-  [kitty-config](https://github.com/Gin111191/kitty-config) strips those variables with `env TMUX`.
+  Open the SSH from Kitty directly; a tmux on WSL alone is fine (`allow-passthrough on` is in
+  [tmux-config](https://github.com/Gin111191/tmux-config)). Even then tmux passes the image
+  through without tracking it, so a scroll or a pane resize can strand it; reopening the buffer
+  redraws it.
+- **A tmux hides Kitty.** snacks finds the terminal by asking it (XTVERSION), and the tmux in the
+  way answers `tmux` instead, so `:checkhealth snacks` reports no graphics protocol and nothing is
+  drawn. `lua/plugins/image.lua` asks tmux for the attached client's `#{client_termname}` and, if
+  it is kitty, sets `SNACKS_KITTY=1`. That works for a pane created before the attach too — the
+  usual ssh-in-then-`tmux attach`. It does not cover a tmux on the Mac side: from WSL there is no
+  way to see past it.
 - **An image over 10000 px on either side.** Kitty rejects it (`Image too large`) and shows nothing,
   no error. A long single-page PDF does this at snacks' 192 dpi — 870x8100 pt comes out 21314 px
   tall — so `lua/plugins/image.lua` caps pdf and svg output at 4096 px. Such a page still shows only
