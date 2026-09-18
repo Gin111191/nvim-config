@@ -7,9 +7,11 @@
 -- machine without luarocks lazy retries the build forever. snacks only shells out to
 -- the ImageMagick *binary*, which apt and brew both ship.
 --
--- Where an image shows: an image file opened as a buffer, and image references inside
--- markdown, html, css/scss, latex, typst, norg, jsx/tsx, vue, svelte (each needs its
--- treesitter parser). A bare path typed into any other file is not picked up.
+-- Where an image shows: an image file opened as a buffer fills that buffer. An image
+-- referenced inside markdown, html, css/scss, latex, typst, norg, jsx/tsx, vue, svelte
+-- (each needs its treesitter parser) pops up in a float while the cursor sits on the
+-- reference, and closes when it moves off — linkarzu's setup, so a document with many
+-- images is not drawn all at once. A bare path typed into any other file is not picked up.
 --
 -- Three things live outside this file and all three are required:
 --   * the `magick` binary   — `sudo apt install imagemagick` / `brew install imagemagick`
@@ -43,6 +45,9 @@ return {
       -- ponytail: the last frame is the largest in icons written in ascending order (most
       -- tools); an .ico stored largest-first would show its smallest size.
       convert = { magick = { ico = { '{src}[-1]', '-scale', '1920x1080>' } } },
+      -- inline = true would draw every reference under its line; float draws only the
+      -- one at the cursor. Size is in cells.
+      doc = { inline = false, float = true, max_width = 60, max_height = 30 },
     },
   },
   config = function(_, opts)
