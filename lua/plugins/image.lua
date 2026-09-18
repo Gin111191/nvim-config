@@ -56,6 +56,14 @@ return {
     },
   },
   config = function(_, opts)
+    -- Behind a tmux, snacks cannot see kitty: its XTVERSION query is answered by tmux, so it
+    -- finds no graphics terminal and draws nothing. Over ssh the tmux may even be on the far
+    -- side (kitty -> tmux on the Mac -> ssh -> here), leaving only TERM=tmux-256color to go on.
+    -- kitty-config exports LC_TERMINAL=kitty, and LC_* is what ssh carries by default; seeing
+    -- it, tell snacks outright. Set only on that signal, so a plain terminal gets no escapes.
+    if vim.env.LC_TERMINAL == 'kitty' and not vim.env.SNACKS_KITTY then
+      vim.env.SNACKS_KITTY = '1'
+    end
     require('snacks').setup(opts)
     -- Upstream bug folke/snacks.nvim#2896 (closed as stale, not fixed): leaving an image
     -- buffer sets its placement `hidden`, and nothing clears it on return, so going back

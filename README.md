@@ -159,10 +159,18 @@ errors — so check health before hunting for the file.
 ### What breaks it
 
 - **Two tmux between nvim and Kitty.** snacks wraps an image for one tmux; a second one swallows it.
-  Open the SSH from Kitty directly; a tmux on WSL alone is fine (`allow-passthrough on` is in
-  [tmux-config](https://github.com/Gin111191/tmux-config)). Even then tmux passes the image
-  through without tracking it, so a scroll or a pane resize can strand it; reopening the buffer
-  redraws it.
+  One tmux is fine on either side — on WSL, or on the Mac with the ssh started inside it — as long
+  as it has `allow-passthrough on` (it is in [tmux-config](https://github.com/Gin111191/tmux-config)).
+  Even then tmux passes the image through without tracking it, so a scroll or a pane resize can
+  strand it; reopening the buffer redraws it.
+- **A tmux hides Kitty.** snacks finds the terminal by asking it (XTVERSION), and a tmux in the
+  way answers `tmux` instead — worse over ssh, where the Mac's tmux leaves WSL nothing but
+  `TERM=tmux-256color`. Result: `:checkhealth snacks` says the terminal has no graphics protocol
+  and nothing is drawn. [kitty-config](https://github.com/Gin111191/kitty-config) exports
+  `LC_TERMINAL=kitty`, ssh carries `LC_*` both ways by default, and `lua/plugins/image.lua` turns
+  that into `SNACKS_KITTY=1`. On WSL, `echo $LC_TERMINAL` must print `kitty`; if it is empty,
+  kitty was started before that line existed, or the Mac's tmux server was — restart it, or run
+  `tmux set-environment -g LC_TERMINAL kitty` once.
 - **Kitty started from a shell inside tmux** (typing `kitty` in a WezTerm pane) inherits `TMUX`;
   snacks then wraps images for a tmux that is not there and nothing draws.
   [kitty-config](https://github.com/Gin111191/kitty-config) strips those variables with `env TMUX`.
