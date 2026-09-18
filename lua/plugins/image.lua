@@ -59,8 +59,10 @@ return {
           -- written in full because a list replaces snacks' default instead of extending it.
           -- 4096 leaves an A4 page at 192 dpi (1587x2245) untouched and keeps the bytes sent
           -- down an ssh small; a page that tall shows as a narrow strip at any cap anyway.
-          pdf = { '-density', 192, '{src}[{page}]', '-background', 'white', '-alpha', 'remove', '-trim', '-resize', '4096x4096>' },
-          vector = { '-density', 192, '{src}[{page}]', '-resize', '4096x4096>' },
+          -- -depth 8: ghostscript hands back 16-bit, which the terminal throws away on arrival;
+          -- the long page drops from 2.2 MB to 712 KB of PNG for the same picture.
+          pdf = { '-density', 192, '{src}[{page}]', '-background', 'white', '-alpha', 'remove', '-trim', '-resize', '4096x4096>', '-depth', 8 },
+          vector = { '-density', 192, '{src}[{page}]', '-resize', '4096x4096>', '-depth', 8 },
         },
       },
       -- inline = true would draw every reference under its line; float draws only the
@@ -74,7 +76,22 @@ return {
     -- side (kitty -> tmux on the Mac -> ssh -> here), leaving only TERM=tmux-256color to go on.
     -- kitty-config exports LC_TERMINAL=kitty, and LC_* is what ssh carries by default; seeing
     -- it, tell snacks outright. Set only on that signal, so a plain terminal gets no escapes.
-    if vim.env.LC_TERMINAL == 'kitty' and not vim.env.SNACKS_KITTY then
+    --
+    -- A tmux on THIS side needs one more question: a server started before kitty attached
+    -- keeps its old environment in every pane, so LC_TERMINAL is missing there — and that is
+    -- the usual way to use a remote tmux (ssh in, `tmux attach`). tmux itself knows which
+    -- terminal the attached client is; snacks asks the same thing when extended-keys is on.
+    local function far_end_is_kitty()
+      if vim.env.LC_TERMINAL == 'kitty' then
+        return true
+      end
+      if vim.env.TMUX then
+        local out = vim.fn.system { 'tmux', 'display-message', '-p', '#{client_termname}' }
+        return vim.v.shell_error == 0 and out:find('kitty', 1, true) ~= nil
+      end
+      return false
+    end
+    if not vim.env.SNACKS_KITTY and far_end_is_kitty() then
       vim.env.SNACKS_KITTY = '1'
     end
     require('snacks').setup(opts)

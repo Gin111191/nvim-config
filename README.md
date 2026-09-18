@@ -168,7 +168,9 @@ errors — so check health before hunting for the file.
   `TERM=tmux-256color`. Result: `:checkhealth snacks` says the terminal has no graphics protocol
   and nothing is drawn. [kitty-config](https://github.com/Gin111191/kitty-config) exports
   `LC_TERMINAL=kitty`, ssh carries `LC_*` both ways by default, and `lua/plugins/image.lua` turns
-  that into `SNACKS_KITTY=1`. On WSL, `echo $LC_TERMINAL` must print `kitty`; if it is empty,
+  that into `SNACKS_KITTY=1`. Inside a tmux on WSL it also asks tmux for `#{client_termname}`,
+  because a tmux server started before kitty attached keeps the old environment in its panes —
+  the usual ssh-in-then-`tmux attach` case, where `LC_TERMINAL` never reaches nvim. On WSL, `echo $LC_TERMINAL` must print `kitty`; if it is empty,
   kitty was started before that line existed, or the Mac's tmux server was — restart it, or run
   `tmux set-environment -g LC_TERMINAL kitty` once.
 - **Kitty started from a shell inside tmux** (typing `kitty` in a WezTerm pane) inherits `TMUX`;
