@@ -30,6 +30,35 @@ return {
   priority = 1000,
   lazy = false, -- the module hooks buffer events, so it cannot wait to be called
   opts = {
-    image = { enabled = true },
+    image = {
+      enabled = true,
+      -- snacks' own default list, plus svg and ico (ImageMagick reads both). Written out
+      -- in full because snacks' config merge replaces a list rather than appending to it.
+      formats = {
+        'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'tiff', 'heic', 'avif',
+        'mp4', 'mov', 'avi', 'mkv', 'webm', 'pdf', 'icns',
+        'svg', 'ico',
+      },
+      -- An .ico holds several sizes; snacks' default takes frame [0], the smallest (16px).
+      -- ponytail: the last frame is the largest in icons written in ascending order (most
+      -- tools); an .ico stored largest-first would show its smallest size.
+      convert = { magick = { ico = { '{src}[-1]', '-scale', '1920x1080>' } } },
+    },
   },
+  config = function(_, opts)
+    require('snacks').setup(opts)
+    -- Upstream bug folke/snacks.nvim#2896 (closed as stale, not fixed): leaving an image
+    -- buffer sets its placement `hidden`, and nothing clears it on return, so going back
+    -- to an image already open (:b#, bufferline, neo-tree) shows a blank buffer. The
+    -- patch below is the one from that issue. Drop it once snacks clears `hidden` itself.
+    local placement = require('snacks.image.placement')
+    local update = placement.update
+    placement.update = function(self, ...)
+      if self.hidden and #self:wins() > 0 then
+        self.hidden = false
+        self._state = nil
+      end
+      return update(self, ...)
+    end
+  end,
 }
