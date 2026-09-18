@@ -120,45 +120,49 @@ Formats: png jpg jpeg gif bmp webp tiff heic avif pdf icns svg ico, plus the fir
 mp4/mov/avi/mkv/webm. Everything except PNG goes through ImageMagick first: 0.3–1 s the first time
 (an 8K wallpaper is the slow end), then cached in `~/.cache/nvim/snacks/image`.
 
-### macOS, in Kitty
+### ImageMagick — the same line on the Mac and on WSL
 
 ```sh
 brew install imagemagick-full && brew link --force imagemagick-full
+magick -list format | grep -i svg     # expect "RSVG" in the description
 ```
 
-`imagemagick-full`, not `imagemagick`: the plain formula has no librsvg and registers no fonts, so an
-SVG with text fails (`unable to read font`) and gradients come out black.
+On WSL this is linuxbrew, so no sudo. `imagemagick-full`, not `imagemagick`: the plain formula has
+no librsvg and registers no fonts, so an SVG with text fails (`unable to read font`) and gradients
+come out black. `-full` also brings ghostscript, which is what draws a PDF page.
 
 ### WSL, viewed from Kitty on the Mac over SSH
 
 Nvim runs on WSL; the picture is drawn by Kitty on the Mac. snacks sees `SSH_CONNECTION` and sends
-the image bytes down the connection instead of a path. WSLg plays no part, so this works even while
-WSLg is broken.
+the image bytes down the connection instead of a path. No X server and no WSLg are involved, so this
+works even while WSLg is broken.
 
-On WSL:
+On WSL, after installing ImageMagick as above:
 
 ```sh
 git -C ~/.config/nvim pull
 nvim                                  # lazy installs snacks.nvim at the commit in lazy-lock.json, then :q
-sudo apt install imagemagick
-convert -list format | grep -i svg    # apt may ship IM6 (`convert`) or IM7 (`magick`); snacks tries magick, then convert
 ```
 
-On the Mac, once, **inside Kitty** (so WSL knows `TERM=xterm-kitty`):
+WSL must also know `TERM=xterm-kitty`, which plain `ssh` does not carry across. Any one of:
 
 ```sh
-infocmp -a xterm-kitty | ssh wsl 'tic -x -o ~/.terminfo /dev/stdin'   # quoted: ~ must expand on WSL, not on the Mac
+kitten ssh wsl                                                          # from Kitty: copies the terminfo by itself
+curl -fsSL https://raw.githubusercontent.com/kovidgoyal/kitty/master/terminfo/kitty.terminfo | tic -x -o ~/.terminfo -   # on WSL, once
+infocmp -a xterm-kitty | ssh wsl 'tic -x -o ~/.terminfo /dev/stdin'    # on the Mac inside Kitty, once — quoted, so ~ expands on WSL
 ```
 
-Or connect with `kitten ssh wsl`, which copies the terminfo by itself. Then, in nvim on WSL,
-`:checkhealth snacks` — the `Snacks.image` block should report `kitty` detected and supported, and
-find `magick` or `convert`.
+Then, in nvim on WSL, `:checkhealth snacks`: the `Snacks.image` block should report `kitty` detected
+and supported, and find `magick`. A missing `magick` looks exactly like a missing image — nothing
+errors — so check health before hunting for the file.
 
 ### What breaks it
 
 - **Two tmux between nvim and Kitty.** snacks wraps an image for one tmux; a second one swallows it.
   Open the SSH from Kitty directly; a tmux on WSL alone is fine (`allow-passthrough on` is in
-  [tmux-config](https://github.com/Gin111191/tmux-config)).
+  [tmux-config](https://github.com/Gin111191/tmux-config)). Even then tmux passes the image
+  through without tracking it, so a scroll or a pane resize can strand it; reopening the buffer
+  redraws it.
 - **Kitty started from a shell inside tmux** (typing `kitty` in a WezTerm pane) inherits `TMUX`;
   snacks then wraps images for a tmux that is not there and nothing draws.
   [kitty-config](https://github.com/Gin111191/kitty-config) strips those variables with `env TMUX`.
@@ -197,7 +201,7 @@ Two places, both need changing.
 | `nvim-treesitter` | Pinned only through `lazy-lock.json` | Also pinned with `branch = 'master'` in the spec itself |
 | Markdown | — | **render-markdown.nvim** renders `.md` files inside nvim |
 | `nvim-treesitter` | The `master` branch (archived, breaks parsing markdown on Neovim ≥ 0.11) | **The `main` branch** — rewritten against the new API, the bug gone at the root |
-| `image.nvim` | On | **Off** — it needs `luarocks`, and without it lazy rebuilds endlessly and reports `Too many rounds of missing plugins`. Images come from **snacks.image** instead, which only calls the ImageMagick binary |
+| `image.nvim` | On | **Off** — it needs `luarocks`, and without it lazy rebuilds endlessly and reports `Too many rounds of missing plugins`. Images come from **snacks.image** instead, which only calls the ImageMagick binary — see [Images](#images--snacksimage) |
 | Installing | Clone it by hand | A cross-platform `install.sh`, with backups and a tool check |
 | Documentation | README only | README + a full CHEATSHEET |
 

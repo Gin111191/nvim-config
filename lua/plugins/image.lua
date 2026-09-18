@@ -14,10 +14,13 @@
 -- images is not drawn all at once. A bare path typed into any other file is not picked up.
 --
 -- Three things live outside this file and all three are required:
---   * the `magick` binary   — `sudo apt install imagemagick` / `brew install imagemagick`
---     (PNG needs no conversion; every other format goes through it)
---   * a terminal speaking the Kitty graphics protocol — Kitty or Ghostty draw inline.
+--   * the `magick` binary — `brew install imagemagick-full`, on the Mac and on the WSL box
+--     alike (linuxbrew there, so no sudo). The plain `imagemagick` formula has no librsvg:
+--     SVG text fails and gradients go black. PNG needs no conversion; the rest goes through it.
+--   * a terminal speaking the Kitty graphics protocol — Kitty or Ghostty.
 --     WezTerm lacks unicode placeholders, so there images only show in a hover float.
+--   * over ssh, TERM=xterm-kitty known at the far end — `kitten ssh host` ships the
+--     terminfo across; plain `ssh` leaves the remote without it
 --   * under tmux, `allow-passthrough on` — already set in tmux-config
 -- Miss any one and the module goes quiet rather than erroring; `:checkhealth snacks`
 -- names the one that is missing.
@@ -25,6 +28,8 @@
 -- Over SSH it still works: snacks sees SSH_CONNECTION and sends the image bytes instead
 -- of a file path, so the terminal on the near side draws it. At most ONE tmux in the
 -- chain — the wrapper snacks puts around an image gets through one tmux, not two.
+-- tmux passes the image through without tracking it, so a scroll or a pane resize can
+-- leave it stranded; reopening the buffer redraws it.
 --
 -- Every other snacks module stays off: they are opt-in, and only `image` is declared.
 return {
