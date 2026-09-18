@@ -65,5 +65,11 @@ return {
       end
       return update(self, ...)
     end
+
+    -- Space + s + i: find an image with a live preview. Telescope cannot preview an
+    -- image; snacks.picker draws it with this module. Lists only the formats above.
+    vim.keymap.set('n', '<leader>si', function()
+      Snacks.picker.files { ft = opts.image.formats }
+    end, { desc = '[S]earch [I]mages' })
   end,
 }

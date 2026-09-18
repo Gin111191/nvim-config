@@ -45,6 +45,7 @@ tab changes nothing you can see. `:tabs` is the only way to find out how many yo
 | `Space + s + s` | List every Telescope command |
 | `Space + /` | Fuzzy-search **inside the current file** |
 | `Space + s + /` | Grep, but only **in the files already open** |
+| `Space + s + i` | **Find an image**, previewed as you move (snacks.picker, not Telescope — `image.lua`) |
 
 ### Inside a Telescope window
 
