@@ -70,3 +70,30 @@ Còn sót: binary `eslint_d` vẫn còn trong Mason (chưa tự gỡ), có thể
 2. Không cần sửa gì thêm ở Mason — nó tự thấy tên mới qua `vim.tbl_keys(servers)` và tự tải binary khi mở lại nvim.
 3. (Tùy chọn) Thêm formatter tương ứng vào `sources` trong `none-ls.lua` (ví dụ `clang-format`).
 4. Mở lại nvim để kích hoạt cài đặt tự động.
+
+## 9. `eslint-config-prettier` — tránh ESLint và Prettier xung đột rule style
+
+Lệnh `npm install --save-dev prettier eslint-config-prettier` cài 2 thứ khác nhau:
+
+- `prettier` — chính Prettier.
+- `eslint-config-prettier` — **không phải** cài lại ESLint (ESLint đã có sẵn từ `create-next-app`). Đây là 1 bộ config chỉ có tác dụng **tắt các rule style của ESLint** có thể đụng với Prettier, để Prettier lo 100% phần hình thức, ESLint chỉ lo logic/chất lượng code.
+
+Cài xong chưa đủ — phải gắn vào `eslint.config.mjs`:
+
+```js
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+import prettierConfig from "eslint-config-prettier";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  prettierConfig, // phải đứng SAU nextVitals/nextTs — entry sau đè entry trước trong flat config
+  globalIgnores([...]),
+]);
+
+export default eslintConfig;
+```
+
+`prettierConfig` phải nằm **sau** các config bật rule (`nextVitals`, `nextTs`), vì ESLint flat config áp dụng theo thứ tự mảng — đứng trước sẽ bị đè lại, làm mất tác dụng.
