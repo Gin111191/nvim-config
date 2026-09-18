@@ -112,6 +112,14 @@ return {
             vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
           end, '[T]oggle Inlay [H]ints')
         end
+
+        -- Auto-fix ESLint issues (per-project eslint.config.*) on save.
+        if client and client.name == 'eslint' then
+          vim.api.nvim_create_autocmd('BufWritePre', {
+            buffer = event.buf,
+            command = 'EslintFixAll',
+          })
+        end
       end,
     })
 
@@ -131,6 +139,7 @@ return {
     -- - settings (table): Override the default settings passed when initializing the server.
     local servers = {
       ts_ls = {},
+      eslint = {},
       ruff = {},
       pylsp = {
         settings = {
