@@ -39,6 +39,8 @@ To see what it would do without changing anything: `./install.sh --dry-run`
 | **`node`, `npm`** | Recommended | The LSPs written in JS (typescript, json, css, html, tailwind, eslint_d, prettier) **cannot install** |
 | **A Nerd Font** | Recommended | Icons show as empty boxes |
 | A true-colour terminal | Recommended | Wrong colours |
+| **ImageMagick** | For images | Only PNG can show; see [Images](#images--snacksimage) |
+| Kitty or Ghostty | For images | No images at all (WezTerm: a float only, not verified here) |
 
 `install.sh` checks for each and says plainly what is missing.
 
@@ -55,15 +57,16 @@ To see what it would do without changing anything: `./install.sh --dry-run`
 **Learning the keys** — which-key: press `Space`, wait 300ms, and the hint panel appears.
 **Moving around with tmux** — `Ctrl+h/j/k/l` crosses both nvim windows and tmux panes; splitting and resizing share their symbols with [tmux-config](https://github.com/Gin111191/tmux-config).
 **Markdown** — render-markdown.nvim: opening a `.md` file renders it in place (headings, tables, checkboxes, code blocks).
+**Images** — snacks.image: an image file opens as a picture; an image a document references pops up while the cursor is on it; `Space+si` finds images with a live preview.
 
-44 plugins, with versions pinned in `lazy-lock.json`.
+45 plugins, with versions pinned in `lazy-lock.json`.
 
 ---
 
 ## Layout
 
 ```
-init.lua                    loads core, then lists the 14 plugin groups
+init.lua                    loads core, then lists the 16 plugin groups
 lua/core/options.lua        43 basic options
 lua/core/keymaps.lua        leader = Space, the general key bindings
 lua/core/snippets.lua       how errors are displayed (the filename is inherited from the
@@ -103,6 +106,68 @@ run `:TSInstallAll`.
 
 ---
 
+## Images — snacks.image
+
+The terminal draws the picture itself (Kitty graphics protocol), so it needs Kitty or Ghostty.
+
+| Where | What you see |
+|---|---|
+| An image file opened (`nvim a.png`, Telescope, Neo-tree) | The window is the picture |
+| An image a document references (markdown, html, css, latex, typst, …) | A float while the cursor is on the reference — `inline = false`, so a document with many images is not drawn all at once |
+| `Space+si` | snacks.picker listing only images, previewing each one as you move |
+
+Formats: png jpg jpeg gif bmp webp tiff heic avif pdf icns svg ico, plus the first frame of
+mp4/mov/avi/mkv/webm. Everything except PNG goes through ImageMagick first: 0.3–1 s the first time
+(an 8K wallpaper is the slow end), then cached in `~/.cache/nvim/snacks/image`.
+
+### macOS, in Kitty
+
+```sh
+brew install imagemagick-full && brew link --force imagemagick-full
+```
+
+`imagemagick-full`, not `imagemagick`: the plain formula has no librsvg and registers no fonts, so an
+SVG with text fails (`unable to read font`) and gradients come out black.
+
+### WSL, viewed from Kitty on the Mac over SSH
+
+Nvim runs on WSL; the picture is drawn by Kitty on the Mac. snacks sees `SSH_CONNECTION` and sends
+the image bytes down the connection instead of a path. WSLg plays no part, so this works even while
+WSLg is broken.
+
+On WSL:
+
+```sh
+git -C ~/.config/nvim pull
+nvim                                  # lazy installs snacks.nvim at the commit in lazy-lock.json, then :q
+sudo apt install imagemagick
+convert -list format | grep -i svg    # apt may ship IM6 (`convert`) or IM7 (`magick`); snacks tries magick, then convert
+```
+
+On the Mac, once, **inside Kitty** (so WSL knows `TERM=xterm-kitty`):
+
+```sh
+infocmp -a xterm-kitty | ssh wsl 'tic -x -o ~/.terminfo /dev/stdin'   # quoted: ~ must expand on WSL, not on the Mac
+```
+
+Or connect with `kitten ssh wsl`, which copies the terminfo by itself. Then, in nvim on WSL,
+`:checkhealth snacks` — the `Snacks.image` block should report `kitty` detected and supported, and
+find `magick` or `convert`.
+
+### What breaks it
+
+- **Two tmux between nvim and Kitty.** snacks wraps an image for one tmux; a second one swallows it.
+  Open the SSH from Kitty directly; a tmux on WSL alone is fine (`allow-passthrough on` is in
+  [tmux-config](https://github.com/Gin111191/tmux-config)).
+- **Kitty started from a shell inside tmux** (typing `kitty` in a WezTerm pane) inherits `TMUX`;
+  snacks then wraps images for a tmux that is not there and nothing draws.
+  [kitty-config](https://github.com/Gin111191/kitty-config) strips those variables with `env TMUX`.
+- **A blank buffer when going back to an image already open** — upstream bug
+  [folke/snacks.nvim#2896](https://github.com/folke/snacks.nvim/issues/2896), patched in
+  `lua/plugins/image.lua` until snacks fixes it.
+
+---
+
 ## Colours — kept in step with WezTerm
 
 `lua/plugins/colortheme.lua` holds the 16 **Dusk-Navy** colours verbatim, copied from
@@ -132,7 +197,7 @@ Two places, both need changing.
 | `nvim-treesitter` | Pinned only through `lazy-lock.json` | Also pinned with `branch = 'master'` in the spec itself |
 | Markdown | — | **render-markdown.nvim** renders `.md` files inside nvim |
 | `nvim-treesitter` | The `master` branch (archived, breaks parsing markdown on Neovim ≥ 0.11) | **The `main` branch** — rewritten against the new API, the bug gone at the root |
-| `image.nvim` | On | **Off** — it needs `luarocks`, and without it lazy rebuilds endlessly and reports `Too many rounds of missing plugins`. Turn it back on with `enabled = true` once luarocks is installed |
+| `image.nvim` | On | **Off** — it needs `luarocks`, and without it lazy rebuilds endlessly and reports `Too many rounds of missing plugins`. Images come from **snacks.image** instead, which only calls the ImageMagick binary |
 | Installing | Clone it by hand | A cross-platform `install.sh`, with backups and a tool check |
 | Documentation | README only | README + a full CHEATSHEET |
 
