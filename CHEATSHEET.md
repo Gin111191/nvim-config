@@ -34,6 +34,7 @@ tab changes nothing you can see. `:tabs` is the only way to find out how many yo
 | Key | What it does |
 |---|---|
 | **`Space + s + f`** | **Find a file** by name |
+| `Space + s + a` | Find a file, **including** what `.gitignore` hides (`node_modules`, `.git`...) |
 | **`Space + s + g`** | **Find text** across the whole project (grep) |
 | `Space + s + w` | Search for the word under the cursor |
 | `Space + Space` | List the open buffers |
@@ -104,6 +105,7 @@ To reach what it skips:
 
 | Command | Finds |
 |---|---|
+| **`Space + s + a`** | Same as `find_files`, but **including** what `.gitignore` hides — the everyday shortcut for the row below |
 | `:Telescope find_files no_ignore=true` | Files `.gitignore` hides, such as a `.env` |
 | `:Telescope find_files cwd=node_modules` | Files inside `node_modules` — paths are then relative to it, so the pattern no longer matches |
 | `:Telescope live_grep cwd=node_modules` | Text inside `node_modules`, the same way |
