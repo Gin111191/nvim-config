@@ -88,6 +88,14 @@ return {
     vim.keymap.set('n', '<leader>sa', function()
       builtin.find_files { no_ignore = true }
     end, { desc = '[S]earch [A]ll files (ignores .gitignore too)' })
+    -- snacks.picker experiment, compared against sf/sa above: every file, every
+    -- folder, no .gitignore filter, no dotfile filter. Freed up from image.lua's
+    -- old [S]earch [I]mages binding (moved to <leader>sm) to make room for this.
+    -- If `hidden`/`ignored` aren't the right option names on your snacks.nvim
+    -- version, check `:help snacks.picker.files` and adjust.
+    vim.keymap.set('n', '<leader>si', function()
+      Snacks.picker.files { hidden = true, ignored = true }
+    end, { desc = '[S]earch every file (snacks, no ignore/hidden filter)' })
     vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
     vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
     vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })

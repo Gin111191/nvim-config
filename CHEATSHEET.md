@@ -33,8 +33,9 @@ tab changes nothing you can see. `:tabs` is the only way to find out how many yo
 
 | Key | What it does |
 |---|---|
-| **`Space + s + f`** | **Find a file** by name |
-| `Space + s + a` | Find a file, **including** what `.gitignore` hides (`node_modules`, `.git`...) |
+| **`Space + s + f`** | **Find a file** by name (Telescope) |
+| `Space + s + a` | Same as above, but **including** what `.gitignore` hides (`node_modules`, `.git`...) — still Telescope |
+| `Space + s + i` | Find a file — **snacks.picker, not Telescope**, same no-ignore/no-hidden-filter reach as `sa`. An experiment to compare against `sf`/`sa`; `telescope.lua` has the note |
 | **`Space + s + g`** | **Find text** across the whole project (grep) |
 | `Space + s + w` | Search for the word under the cursor |
 | `Space + Space` | List the open buffers |
@@ -46,7 +47,7 @@ tab changes nothing you can see. `:tabs` is the only way to find out how many yo
 | `Space + s + s` | List every Telescope command |
 | `Space + /` | Fuzzy-search **inside the current file** |
 | `Space + s + /` | Grep, but only **in the files already open** |
-| `Space + s + i` | **Find an image**, previewed as you move (snacks.picker, not Telescope — `image.lua`) |
+| `Space + s + m` | **Find an image/video**, previewed as you move (snacks.picker — `image.lua`). Moved here from `Space + s + i`, freed up for the snacks file-picker experiment above |
 
 ### Inside a Telescope window
 

@@ -31,12 +31,16 @@
 -- tmux passes the image through without tracking it, so a scroll or a pane resize can
 -- leave it stranded; reopening the buffer redraws it.
 --
--- Every other snacks module stays off: they are opt-in, and only `image` is declared.
+-- Every other snacks module stays off except `picker`: they are opt-in, and only
+-- `image` and `picker` are declared. `picker` is enabled for the file-finder
+-- experiment on <leader>si in telescope.lua (Snacks.picker.files, compared against
+-- Telescope's sf/sa) -- without `enabled = true` here, that call errors.
 return {
   'folke/snacks.nvim',
   priority = 1000,
   lazy = false, -- the module hooks buffer events, so it cannot wait to be called
   opts = {
+    picker = { enabled = true },
     image = {
       enabled = true,
       -- snacks' own default list, plus svg and ico (ImageMagick reads both). Written out
@@ -97,10 +101,12 @@ return {
       return update(self, ...)
     end
 
-    -- Space + s + i: find an image with a live preview. Telescope cannot preview an
-    -- image; snacks.picker draws it with this module. Lists only the formats above.
-    vim.keymap.set('n', '<leader>si', function()
+    -- Space + s + m: find an image/video with a live preview. Telescope cannot preview
+    -- an image; snacks.picker draws it with this module. Lists only the formats above.
+    -- Moved off <leader>si (was [S]earch [I]mages) to make room for the snacks.picker
+    -- file-finder experiment in telescope.lua -- see that file for why.
+    vim.keymap.set('n', '<leader>sm', function()
       Snacks.picker.files { ft = opts.image.formats }
-    end, { desc = '[S]earch [I]mages' })
+    end, { desc = '[S]earch [M]edia (images/video)' })
   end,
 }
