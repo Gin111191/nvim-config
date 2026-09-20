@@ -98,6 +98,21 @@ vim.keymap.set('v', '>', '>gv', opts)
 -- Keep last yanked when pasting
 vim.keymap.set('v', 'p', '"_dP', opts)
 
+-- Show the current file's full path. Not bound to <C-g> (stock Vim's file-info
+-- key) because some setups have an OS-level or app-level global hotkey on
+-- Ctrl+G that steals the keypress before Neovim ever sees it -- these
+-- bindings are immune to that.
+vim.keymap.set('n', '<leader>fp', function()
+  vim.notify(vim.fn.expand '%:p')
+end, { desc = '[F]ile [P]ath -- show full path' })
+
+-- Same, but also copies the path to the system clipboard.
+vim.keymap.set('n', '<leader>fy', function()
+  local path = vim.fn.expand '%:p'
+  vim.fn.setreg('+', path)
+  vim.notify(path)
+end, { desc = '[F]ile path [Y]ank -- show and copy full path' })
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', function()
   vim.diagnostic.jump { count = -1, float = true }

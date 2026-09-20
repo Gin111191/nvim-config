@@ -352,6 +352,8 @@ no key is bound to it, but its commands are useful:
 | `Space + w` | Toggle line wrapping |
 | `[` + `Space` / `]` + `Space` | Add an empty line above / below, staying in Normal mode |
 | `gx` | Open the URL or file path under the cursor |
+| `Space + f + p` | Show the current file's full path |
+| `Space + f + y` | Show the current file's full path **and copy it to the clipboard** |
 | `u` / `Ctrl + r` | Undo / redo |
 
 Yank `y` and paste `p` go through the **system clipboard** (`clipboard = 'unnamedplus'`,
@@ -432,10 +434,10 @@ an `if`, a Lua table. In a `.md` file it is a `#` heading plus everything under 
 | `zj` / `zk` | Jump to the next / previous fold |
 | `zv` | Open just enough to show the line the cursor is on |
 
-> **Why a file opens with everything already shut:** `lua/plugins/treesitter.lua` switches folding
-> on, and nothing sets `foldlevel`, so Neovim's default of `0` applies — and level 0 means every
-> fold closed. To have files open flat instead, add `vim.o.foldlevelstart = 99` to
-> `lua/core/options.lua`.
+Files now open with every fold **expanded**: `lua/core/options.lua` sets `foldlevelstart = 99`.
+Without it, `lua/plugins/treesitter.lua` switches folding on but never sets `foldlevel`, so
+Neovim's default of `0` applies — level 0 means every fold closed. Want that behaviour back?
+Delete the `foldlevelstart` line, or `:set foldlevel=0` for the current session only.
 
 ⚠️ **A paragraph cannot be folded.** The syntax tree has no such thing, so there is nothing there to
 fold. To fold a chunk you choose by hand: run `:setlocal foldmethod=manual` first, then select the
