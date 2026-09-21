@@ -36,6 +36,14 @@ return {
     opts = {},
   },
   {
+    -- Add / change / delete surrounding pairs and tags: ys, cs, ds (Normal), S (Visual).
+    -- e.g. Visual-line + S{ wraps a block in braces; ysiwt then "div" wraps a word in <div>.
+    'kylechui/nvim-surround',
+    version = '*',
+    event = 'VeryLazy',
+    opts = {},
+  },
+  {
     -- Highlight todo, notes, etc in comments
     'folke/todo-comments.nvim',
     event = 'VimEnter',

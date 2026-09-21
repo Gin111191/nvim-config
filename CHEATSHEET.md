@@ -263,7 +263,7 @@ Only active when the open file has a language server (Mason already installs the
 | `gI` | Jump to the implementation |
 | `gD` | Jump to the declaration |
 | `Space + D` | Jump to the type definition |
-| **`Space + c + a`** | **Fix it automatically** (code action) |
+| **`Space + c + a`** | **Fix it automatically** (code action) — also how you **add a missing import**, see below |
 | **`Space + r + n`** | **Rename** a variable/function everywhere |
 | `Space + d + s` | List the symbols in this file |
 | `Space + w + s` | Search symbols across the project |
@@ -278,6 +278,27 @@ Neovim's own LSP keys work too: `grn` rename · `gra` code action · `grr` refer
 
 ⚠️ `gr` fires after a **300ms pause**: Neovim's `grr` `grn` … also begin with `gr`, so it waits to
 see whether another key follows. Type `grr` for the same list with no pause.
+
+### Adding a missing import (`useState`, `Link`, …) — ts/js/tsx
+
+Two routes, both handled by `ts_ls`:
+
+| Situation | Do |
+|---|---|
+| Still typing the name | Pick it from the completion menu (its detail says the module, e.g. `react`) and press **`Ctrl + y`** — the `import` line is inserted for you |
+| Name already typed, menu gone | **`Space + c + a`** with the cursor **on the name**, choose **`Add import from "…"`** |
+| Same, but wanting the menu back | Insert mode, cursor at the end of the word, **`Ctrl + Space`**, then `Ctrl + y` |
+
+`Add import` is missing from the `Space + c + a` list when:
+
+- **The red `Cannot find name '…'` error has not appeared yet.** ts_ls reports it a few seconds after
+  opening or editing the file, and the import action is offered *for that error*. Before it shows up
+  the list holds only refactors (`Extract function`, `Convert to template string`, …).
+- **The cursor is not on the name** — at the end of the line or after a space, no error is under it.
+- It is further down a long list: look through all of it, it sits with the quick fixes.
+
+Nothing to check on the config side: `ts_ls` is enabled in `lua/plugins/lsp.lua` and both routes
+were verified against it. `:LspInfo` shows whether `ts_ls` is attached to the current file.
 
 ## Completion
 
@@ -421,6 +442,35 @@ selected (`viw` then `rx` on "hello" gives "xxxxx"). Use `c` to replace a select
 
 ---
 
+## Surrounding — wrap, change, delete `{}` `[]` `()` and tags
+
+Plugin `nvim-surround` (`lua/plugins/misc.lua`). The character you type after the command **is the
+pair**: `(` `[` `{` `<` `"` `'` `` ` `` work the same way.
+
+| Keys | What it does | Example |
+|---|---|---|
+| **`V` + move, then `S{`** | Wrap the selected **lines** in braces, each brace on its own line, body indented | 3 lines → `{` … `}` around them |
+| `v` + select, then `S(` | Wrap a **partial** selection (braces stay inline) | `foo` → `( foo )` |
+| **`ysiw)`** | Wrap the **word** under the cursor | `foo` → `(foo)` |
+| `yss]` | Wrap the **whole line** | `a, b` → `[a, b]` |
+| `ys$)` | Wrap from the cursor to the end of the line | |
+| **`ysiwt`** then `div` `Enter` | Wrap in an HTML/JSX **tag** | `word` → `<div>word</div>` |
+| `St` then `div` `Enter` | Same, on a Visual selection | |
+| `Sf` then `console.log` `Enter` | Wrap as a **function call** | `x` → `console.log(x)` |
+| **`cs)]`** | **Change** the surrounding pair: first key = what is there, second = what you want | `(foo)` → `[foo]` |
+| `cs"'` | Change quotes | `"foo"` → `'foo'` |
+| **`ds)`** | **Delete** the surrounding pair | `(foo)` → `foo` |
+
+- **Opening vs closing character:** an opening one pads with spaces, a closing one does not.
+  `ysiw{` gives `{ old }`, `ysiw}` gives `{old}`. `(` `[` behave the same; in JS/TS `S)` `S]` are usually what you want.
+- Aliases for the closing forms: `b` = `)`, `B` = `}`, `r` = `]`, `a` = `>`. So `ysiwb` = `ysiw)`.
+- The mnemonic: `ys` = *you surround* + a motion (`iw` word, `ip` paragraph, `$` to end of line, `s` = whole line);
+  `cs` = change surround; `ds` = delete surround; `S` = the Visual-mode version.
+- `V` (linewise) puts the braces on their own lines; plain `v` keeps them on the same line as the text.
+- Checked in a headless run: `ysiw)`, `ysiw{`, `cs)]`, `ysiwt`, `V` + `S{` and `ds]` all behave as above.
+
+---
+
 ## Folding — collapsing blocks of code
 
 Folds come from **treesitter**, so a "block" is whatever the language says a block is: a function,
@@ -540,6 +590,7 @@ cursor is on drops its conceal. `expand`/`contract` add to and subtract from tho
 | which-key | Press `Space` and wait — a panel lists every key that can follow | — |
 | todo-comments | `TODO:` `FIXME:` `NOTE:` `HACK:` light up inside comments | `:TodoTelescope` search them all · `:TodoQuickFix` |
 | nvim-autopairs | Typing `(` `[` `{` `"` adds the closing half | — |
+| nvim-surround | Wrap / change / delete pairs and tags: `ysiw)`, `cs)]`, `ds)`, Visual `S{` — see [Surrounding](#surrounding--wrap-change-delete----and-tags) | — |
 | nvim-ts-autotag | In html/jsx/tsx, typing `<div>` adds `</div>`; renaming the opening tag renames the closing one. Works only while typing in Insert mode, not on pasted text | — |
 | nvim-colorizer | `#7d9bd4` is painted in its own colour (true-colour terminals only) | `:ColorizerToggle` |
 | indent-blankline | Thin vertical lines mark each indent level | — |
