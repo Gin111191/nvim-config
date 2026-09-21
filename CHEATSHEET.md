@@ -527,6 +527,7 @@ cursor is on drops its conceal. `expand`/`contract` add to and subtract from tho
 | which-key | Press `Space` and wait — a panel lists every key that can follow | — |
 | todo-comments | `TODO:` `FIXME:` `NOTE:` `HACK:` light up inside comments | `:TodoTelescope` search them all · `:TodoQuickFix` |
 | nvim-autopairs | Typing `(` `[` `{` `"` adds the closing half | — |
+| nvim-ts-autotag | In html/jsx/tsx, typing `<div>` adds `</div>`; renaming the opening tag renames the closing one. Works only while typing in Insert mode, not on pasted text | — |
 | nvim-colorizer | `#7d9bd4` is painted in its own colour (true-colour terminals only) | `:ColorizerToggle` |
 | indent-blankline | Thin vertical lines mark each indent level | — |
 | vim-sleuth | Indent width is read from the file itself | — |

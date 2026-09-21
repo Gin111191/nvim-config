@@ -28,6 +28,14 @@ return {
     opts = {},
   },
   {
+    -- Auto-close and auto-rename HTML/JSX tags: <div> + > gives <div></div>.
+    -- Needs the html and tsx treesitter parsers (both in treesitter.lua).
+    'windwp/nvim-ts-autotag',
+    event = 'InsertEnter',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    opts = {},
+  },
+  {
     -- Highlight todo, notes, etc in comments
     'folke/todo-comments.nvim',
     event = 'VimEnter',
