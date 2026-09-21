@@ -563,6 +563,12 @@ cursor is on drops its conceal. `expand`/`contract` add to and subtract from tho
 | `:LspInfo` | Show which LSP is running for the current file |
 | `:messages` | Read back the messages that have scrolled past |
 
+⚠️ **Run `:Lazy update` in a Neovim you opened AFTER the last plugin was added to `lua/plugins/`.**
+A session that started earlier does not know the new spec, so when it rewrites `lazy-lock.json` it
+leaves that plugin's line out (`nvim-ts-autotag` was dropped this way). The plugin keeps working on
+this machine, but it is then unpinned, and `:Lazy restore` on another machine will not install the
+locked version. Check `git diff lazy-lock.json` before committing: a plugin line that vanished is the sign.
+
 ---
 
 ## When it breaks
