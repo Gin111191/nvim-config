@@ -456,6 +456,19 @@ folds made by hand.
 |---|---|
 | `Space + b + g` | Toggle the transparent background |
 | `Space + t + t` | Show where Neovim is reading the theme from |
+| `Space + t + i` | Toggle the **image hover float** for the current buffer (see below) |
+
+### Image hover float — off by default
+
+An image referenced inside a file (`<Image src="/x.png">` in tsx, `![](x.png)` in Markdown, `<img>`
+in html, `url()` in css…) used to pop up in a float whenever the cursor crossed it, which covered
+the code in `.tsx` files. It is now **off** (`doc.enabled = false` in `lua/plugins/image.lua`);
+`Space + t + i` switches it on for **the buffer you are in**, and again to switch it off.
+
+- Per buffer, not global: turning it on in `page.tsx` does not touch other files.
+- Opening an image file itself (`:e photo.png`, or a pick from `Space + s + m`) is unaffected —
+  that fills the buffer and never used the float.
+- To get the old always-on behaviour back, set `enabled = true` on the `doc` line.
 
 ---
 

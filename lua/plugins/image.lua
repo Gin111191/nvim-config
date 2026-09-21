@@ -71,7 +71,11 @@ return {
       },
       -- inline = true would draw every reference under its line; float draws only the
       -- one at the cursor. Size is in cells.
-      doc = { inline = false, float = true, max_width = 60, max_height = 30 },
+      -- enabled = false: no float pops up by itself any more -- in a tsx file it sat on top
+      -- of the code every time the cursor crossed an <Image src="...">. <leader>ti turns it
+      -- on for the current buffer instead (see config below). inline/float stay set because
+      -- that toggle reads them.
+      doc = { enabled = false, inline = false, float = true, max_width = 60, max_height = 30 },
     },
   },
   config = function(_, opts)
@@ -108,5 +112,23 @@ return {
     vim.keymap.set('n', '<leader>sm', function()
       Snacks.picker.files { ft = opts.image.formats }
     end, { desc = '[S]earch [M]edia (images/video)' })
+
+    -- Space + t + i: switch the hover float for image references on/off in THIS buffer.
+    -- snacks attaches a CursorMoved autocmd per buffer (group snacks.image.doc.<buf>) and
+    -- guards it with b:snacks_image_attached; off = delete that group and close the float,
+    -- on = attach again. Off by default (doc.enabled = false above), so on is the useful half.
+    vim.keymap.set('n', '<leader>ti', function()
+      local buf = vim.api.nvim_get_current_buf()
+      local doc = require 'snacks.image.doc'
+      if vim.b[buf].snacks_image_attached then
+        pcall(vim.api.nvim_del_augroup_by_name, 'snacks.image.doc.' .. buf)
+        doc.hover_close()
+        vim.b[buf].snacks_image_attached = nil
+        vim.notify 'Image float: off'
+      else
+        doc.attach(buf)
+        vim.notify 'Image float: on'
+      end
+    end, { desc = '[T]oggle [I]mage float' })
   end,
 }
