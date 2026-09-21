@@ -535,8 +535,15 @@ Neovim's palette takes the **16 Dusk-Navy colours verbatim** from `wezterm.lua`:
 | Function names | `#7d9bd4` | `brights[4]` |
 | Keywords | `#a99ad4` | `brights[5]` |
 | Selection | `#3d4a6b` | `selection_bg` |
+| Current line (`CursorLine`) | `#2f3f5c` | **Not** from wezterm.lua — set in `colortheme.lua` |
 
 The background is left **transparent** so WezTerm's gradient shows through.
+
+The current-line highlight is the one colour that is deliberately **not** a palette slot. base16's
+`base01` (`#26334a`) gave it only 1.17:1 contrast against the background, so it was near invisible;
+`#2f3f5c` is 1.41:1, and still lighter than the Visual selection (`#3d4a6b`) so the two do not blur
+together. Want it stronger? Raise the hex in the `CURSORLINE` table (`#334464` is 1.52:1, but is then
+hard to tell from a Visual selection). `Space + b + g` re-runs the theme and keeps the change.
 
 To change the colours: edit `DUSK_NAVY` in `lua/plugins/colortheme.lua` to match `CUSTOM_SCHEMES` in `wezterm.lua`.
 

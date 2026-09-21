@@ -73,6 +73,14 @@ return {
           -- reads at a glance against the relative numbers either side.
           local cur = vim.api.nvim_get_hl(0, { name = "CursorLineNr", link = false })
           cur.fg, cur.ctermfg, cur.bold = DUSK_NAVY.base09, DUSK_NAVY.cterm09, true
+          -- The current line used base01 (#26334a) on a #1d2837 background: 1.17:1
+          -- contrast, near invisible. #2f3f5c is 1.41:1 against it, yet still lighter
+          -- than the Visual selection (base02 #3D4A6B), so the two stay distinguishable.
+          -- Only CursorLine/CursorLineNr change; base01 stays as it is for the status bar.
+          -- 256-colour fallback: 238 (#444444), one step above the 237 base01 maps to.
+          local CURSORLINE = { bg = "#2f3f5c", ctermbg = 238 }
+          vim.api.nvim_set_hl(0, "CursorLine", CURSORLINE)
+          cur.bg, cur.ctermbg = CURSORLINE.bg, CURSORLINE.ctermbg
           vim.api.nvim_set_hl(0, "CursorLineNr", cur)
         else
           -- Light background: WezTerm uses "Everforest Light Medium (Gogh)".
