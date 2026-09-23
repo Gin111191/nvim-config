@@ -108,6 +108,38 @@ Mục 1 nói tool tự tìm **config**. Mục này nói tiếp một lớp khác
 | 2. Resolution | Neovim gọi bản nào khi có cả 2? | Do chính tool/plugin viết logic ưu tiên — **khác nhau tuỳ tool**, không có luật chung |
 | 3. Config | Tool đọc config ở đâu? | Luôn tự tìm theo project (mục 1), không liên quan tool chạy từ binary nào |
 
+```
+Bạn gõ :w, hoặc gõ code cần gợi ý
+                │
+                ▼
+    Neovim cần chạy 1 TOOL (ts_ls, eslint, prettier, ruff, pylsp...)
+                │
+                ▼
+┌──────────────────────────────────┐
+│  LỚP 2 — RESOLUTION               │  "Chạy bản nào?"
+│                                    │
+│   project/node_modules/.bin       │◄── LOCAL, riêng project này
+│        hoặc venv/bin              │
+│              │                    │
+│      (ưu tiên nếu tool có tìm)    │
+│              ▼                    │
+│   ~/.local/share/nvim/mason/bin   │◄── GLOBAL, Mason, dùng chung
+│                                    │     mọi project
+└────────────────┬───────────────────┘
+                 ▼
+         binary thực sự chạy
+                 │
+                 ▼
+┌──────────────────────────────────┐
+│  LỚP 3 — CONFIG                   │  "Đọc rule/style từ đâu?"
+│  Luôn tự đi ngược thư mục tìm     │
+│  eslint.config.mjs, .prettierrc,  │
+│  pyproject.toml...                │
+│  — BẤT KỂ binary vừa chạy là      │
+│  local hay global                 │
+└──────────────────────────────────┘
+```
+
 ### 10.1. JS/TS: local thắng, đã kiểm chứng thực tế
 
 `ts_ls` (Mason) chỉ là **vỏ nói chuyện LSP protocol** — bộ engine thật được nạp từ `node_modules/typescript` gần nhất tính từ file đang mở (kiểm chứng bằng `ps aux | grep tsserver`, thấy tiến trình chạy đúng file trong `node_modules` của project, không phải trong `mason/`). `eslint` LSP cũng vậy: vỏ là Mason, nhưng rule/plugin lấy từ gói `eslint` trong `node_modules` của project.
@@ -133,8 +165,34 @@ Python cài package **vào site-packages của một Python interpreter cụ th�
 - Hệ quả: Jedi phân tích `import` dựa trên **site-packages của venv Mason**, không phải venv project. Nếu project cài `pandas`, `fastapi`... trong venv riêng, `pylsp` **không tự thấy** các package đó — autocomplete/hover có thể báo "không tìm thấy module" hoặc thiếu gợi ý, dù `pip list` trong venv project vẫn có đầy đủ.
 
 ```
-Node/TS:    tool tự đi tìm "node_modules" (tên cố định, ai cũng giống ai)   → tự động, không cấu hình
-Python:     tool cần biết "venv nào", mà venv không có tên/vị trí cố định   → KHÔNG tự động, cần chỉ đường
+NODE/TS — có thư mục CỐ ĐỊNH, dễ "cứ thế mà tìm"
+──────────────────────────────────────────────────
+project/
+├── node_modules/
+│   ├── typescript/        ← ts_ls tự tìm thấy, nạp đúng bản này
+│   ├── eslint/             ← eslint LSP tự tìm thấy
+│   └── .bin/prettier       ← none-ls tự tìm thấy, ưu tiên trước Mason
+└── package.json
+
+  ts_ls (vỏ, từ Mason) ──tự nạp──► node_modules/typescript (bộ não thật)
+
+  kết quả: LUÔN đúng theo project, tự động 100%, không cấu hình gì
+
+
+PYTHON — package nằm trong 1 venv, KHÔNG có vị trí/tên cố định
+──────────────────────────────────────────────────────────────
+project_A/.venv/lib/.../site-packages/    ← project A dùng venv này
+project_B/venv/lib/.../site-packages/     ← project B lại đặt tên KHÁC
+~/anaconda3/envs/xyz/site-packages/       ← hoặc conda env, tên tuỳ ý
+
+  pylsp (Mason) ──chạy bằng──► venv RIÊNG của chính Mason
+                                (KHÔNG phải venv của project nào cả!)
+
+  ruff (Mason) ──luôn gọi qua $PATH──► Mason
+                (không có bước "check thư mục local trước" như Prettier)
+
+  kết quả: KHÔNG tự động — phải tự khai `jedi.environment`,
+           hoặc chấp nhận Jedi không thấy package đã cài trong venv project
 ```
 
 **Cách khắc phục nếu gặp (chưa cần làm nếu chưa có project Python thật):**
