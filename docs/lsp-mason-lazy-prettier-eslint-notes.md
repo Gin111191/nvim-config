@@ -97,3 +97,72 @@ export default eslintConfig;
 ```
 
 `prettierConfig` phải nằm **sau** các config bật rule (`nextVitals`, `nextTs`), vì ESLint flat config áp dụng theo thứ tự mảng — đứng trước sẽ bị đè lại, làm mất tác dụng.
+
+## 10. Local vs global: ai thắng khi cả 2 cùng tồn tại
+
+Mục 1 nói tool tự tìm **config**. Mục này nói tiếp một lớp khác: tool tự tìm **binary** nào để chạy, khi vừa có bản Mason (global) vừa có bản cài riêng trong project (local). Đây là 3 câu hỏi tách biệt, thường bị gộp làm một:
+
+| Lớp | Câu hỏi | Ai quyết định |
+| --- | --- | --- |
+| 1. Cài đặt | Binary từ đâu ra? | Mason (`~/.local/share/nvim/mason/bin`, dùng chung mọi project) hoặc cài local (`node_modules/.bin`, pip/venv riêng project) |
+| 2. Resolution | Neovim gọi bản nào khi có cả 2? | Do chính tool/plugin viết logic ưu tiên — **khác nhau tuỳ tool**, không có luật chung |
+| 3. Config | Tool đọc config ở đâu? | Luôn tự tìm theo project (mục 1), không liên quan tool chạy từ binary nào |
+
+### 10.1. JS/TS: local thắng, đã kiểm chứng thực tế
+
+`ts_ls` (Mason) chỉ là **vỏ nói chuyện LSP protocol** — bộ engine thật được nạp từ `node_modules/typescript` gần nhất tính từ file đang mở (kiểm chứng bằng `ps aux | grep tsserver`, thấy tiến trình chạy đúng file trong `node_modules` của project, không phải trong `mason/`). `eslint` LSP cũng vậy: vỏ là Mason, nhưng rule/plugin lấy từ gói `eslint` trong `node_modules` của project.
+
+`formatting.prettier` trong `none-ls.lua` cũng ưu tiên `node_modules/.bin/prettier` trước, chỉ rơi về `$PATH` (trỏ tới Mason) khi project không có `node_modules`. Vì vậy plugin kiểu `prettier-plugin-tailwindcss` (chỉ tồn tại trong `node_modules` project) vẫn được áp dụng đúng.
+
+**Kiểm tra thật:** mở file `.tsx`, gõ `:NullLsInfo` — hiện đúng path/command đang active.
+
+### 10.2. Python: KHÔNG cùng concept hoàn toàn — vì mô hình dependency khác hẳn Node
+
+Node cài package **vào một thư mục nằm trong chính project** (`node_modules/`), nên "tìm local" chỉ là đi ngược thư mục tìm 1 tên folder cố định — đơn giản, không cần biết gì thêm.
+
+Python cài package **vào site-packages của một Python interpreter cụ thể** (thường nằm trong `.venv/`), không có tên thư mục cố định nào để "cứ thế đi tìm". Muốn biết project dùng package gì, phải biết **đúng interpreter/venv nào** đang được dùng — đây là lý do 2 công cụ Python trong `lsp.lua` xử lý khác hẳn nhau:
+
+**`ruff` (LSP diagnostics) + `ruff_format`/`none-ls.formatting.ruff` (formatter) — giống JS ở lớp config, KHÁC ở lớp resolution:**
+- Đọc config đúng kiểu mục 1 (`pyproject.toml [tool.ruff]` hoặc `ruff.toml`, tự tìm theo project) — **giống Prettier/ESLint**.
+- Nhưng Ruff là static analyzer, không cần "chạy được" code hay import package thật để lint hầu hết rule, nên **không cần biết venv nào** để hoạt động đúng cơ bản.
+- Điểm khác biệt thật sự: `none-ls`'s `ruff`/`ruff_format` source **không có logic ưu tiên local** như Prettier — nó luôn gọi thẳng `ruff` qua `$PATH`, tức **luôn là bản Mason**, bất kể project có tự pin version `ruff` riêng trong `pyproject.toml`/`requirements.txt` hay không. Nếu Mason có bản `ruff` mới/cũ hơn bản project mong muốn, kết quả lint/format trong nvim có thể khác với khi chạy `ruff check .` từ terminal (dùng bản trong venv của project) — **một khác biệt cần nhớ, không tự động khớp như Prettier**.
+
+**`pylsp` (autocomplete/hover/definition, dùng Jedi bên trong) — hoàn toàn không tự dò theo project:**
+- Không có dòng nào trong config trỏ `pylsp.plugins.jedi.environment`, cũng không có plugin dò venv (`venv-selector.nvim`...).
+- Mason cài `python-lsp-server` vào **venv riêng của chính Mason** (`~/.local/share/nvim/mason/packages/python-lsp-server/venv`), tách biệt hoàn toàn với venv của bất kỳ project Python nào.
+- Hệ quả: Jedi phân tích `import` dựa trên **site-packages của venv Mason**, không phải venv project. Nếu project cài `pandas`, `fastapi`... trong venv riêng, `pylsp` **không tự thấy** các package đó — autocomplete/hover có thể báo "không tìm thấy module" hoặc thiếu gợi ý, dù `pip list` trong venv project vẫn có đầy đủ.
+
+```
+Node/TS:    tool tự đi tìm "node_modules" (tên cố định, ai cũng giống ai)   → tự động, không cấu hình
+Python:     tool cần biết "venv nào", mà venv không có tên/vị trí cố định   → KHÔNG tự động, cần chỉ đường
+```
+
+**Cách khắc phục nếu gặp (chưa cần làm nếu chưa có project Python thật):**
+```lua
+pylsp = {
+  settings = {
+    pylsp = {
+      plugins = { ... },
+    },
+  },
+  -- trỏ thẳng interpreter của venv project (cách đơn giản nhất, phải sửa mỗi project)
+  before_init = function(_, config)
+    config.settings.pylsp.plugins.jedi = {
+      environment = vim.fn.getcwd() .. '/.venv/bin/python',
+    }
+  end,
+}
+```
+Hoặc dùng plugin `linux-cultist/venv-selector.nvim` để tự dò và chọn venv theo project, cập nhật `jedi.environment` linh hoạt hơn — chưa cài trong setup hiện tại.
+
+### 10.3. Các ngôn ngữ/tool còn lại: đa số không có khái niệm "local install" như Node
+
+| Server | Có khái niệm local install? | Ghi chú |
+| --- | --- | --- |
+| `lua_ls` | Không | `runtime.version` đang cố định `'LuaJIT'` (mục 4 cũ) — đúng cho việc sửa config Neovim, cần đổi tay nếu mở project Lua 5.4 thường |
+| `jsonls`, `yamlls`, `cssls`, `html`, `dockerls`, `sqlls`, `terraformls` | Không | Không có ecosystem "cài riêng theo project" cho các định dạng này — luôn chạy bản Mason, chỉ có phần **config** (lược đồ JSON Schema, style YAML...) là tự tìm theo project |
+| `tailwindcss` | **Có, một phần** | `tailwindcss-language-server` tự đọc `node_modules/tailwindcss` để biết đang chạy **v3 hay v4** (cú pháp `@theme`, `@tailwind` khác nhau giữa 2 bản) — quan trọng vì project này đang dùng Tailwind v4 |
+
+### 10.4. Tóm gọn nguyên tắc chung
+
+> Tool càng có ecosystem "cài theo từng project vào một chỗ cố định, dễ đoán" (Node → `node_modules`) thì càng dễ tự động ưu tiên local. Tool mà dependency nằm trong một **interpreter/venv không có vị trí cố định** (Python) thì **không tự động** — phải tự chỉ đường, hoặc chấp nhận dùng bản Mason chung cho mọi project (đủ dùng nếu chỉ cần cú pháp cơ bản, không cần biết chính xác package nào đã cài).
