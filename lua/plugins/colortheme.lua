@@ -82,6 +82,24 @@ return {
           vim.api.nvim_set_hl(0, "CursorLine", CURSORLINE)
           cur.bg, cur.ctermbg = CURSORLINE.bg, CURSORLINE.ctermbg
           vim.api.nvim_set_hl(0, "CursorLineNr", cur)
+
+          -- Telescope's preview pane (live_grep, grep_string...): both groups existed
+          -- already -- Telescope sets them -- but the theme never gave them a colour of
+          -- their own, so they fell back to something close to invisible against
+          -- Dusk-Navy. TelescopePreviewLine marks the whole matched line, reusing the
+          -- same background as CursorLine so it reads the same way the current line
+          -- does. TelescopePreviewMatch marks the exact matched text: base0A is this
+          -- palette's own "search highlight" colour (see the base16 table above), the
+          -- same one a plain `/search` uses, so grep results and `/` land on one
+          -- consistent colour instead of two different ones.
+          vim.api.nvim_set_hl(0, "TelescopePreviewLine", { bg = CURSORLINE.bg, ctermbg = CURSORLINE.ctermbg })
+          vim.api.nvim_set_hl(0, "TelescopePreviewMatch", {
+            bg = DUSK_NAVY.base0A,
+            fg = DUSK_NAVY.base00,
+            ctermbg = DUSK_NAVY.cterm0A,
+            ctermfg = DUSK_NAVY.cterm00,
+            bold = true,
+          })
         else
           -- Light background: WezTerm uses "Everforest Light Medium (Gogh)".
           vim.o.background = "light"

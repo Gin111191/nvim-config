@@ -68,6 +68,27 @@ It opens in Insert mode, ready for typing. `Esc` once drops to Normal mode, wher
 `Ctrl+j/k/l` are this config's addition (`telescope.lua:53-57`) — the same h/j/k/l fingers as
 everywhere else. Telescope's own `Ctrl+k` (scroll the preview sideways) is gone as a result.
 
+### Seeing where a match sits, and jumping to it
+
+While still inside Telescope (before pressing anything else), moving `Ctrl+j`/`Ctrl+k` through the
+results already scrolls the preview pane to each match in turn — no need to open the file first.
+Two things are highlighted there, both colours tuned in `colortheme.lua` so they actually stand out
+against Dusk-Navy (the stock colours were close to invisible):
+
+| Highlight group | Marks |
+|---|---|
+| `TelescopePreviewLine` | The whole matched **line** |
+| `TelescopePreviewMatch` | The exact matched **text**, in the palette's search-highlight colour (`base0A`) |
+
+`Ctrl+q` (table above) sends every result into the quickfix list and opens it — one row per match,
+so a file with 3 hits gets 3 rows. From there, step through them without leaving the buffer:
+
+| Key | What it does |
+|---|---|
+| `]q` / `[q` | Jump to the next / previous match — **this config's addition** (`keymaps.lua`) |
+| `:copen` / `:cclose` | Reopen / close the quickfix list window |
+| `:cc N` | Jump straight to match number `N` |
+
 The query box understands fzf syntax, from `telescope-fzf-native`:
 
 | Type | Matches |

@@ -124,3 +124,22 @@ end, { desc = 'Go to next diagnostic message' })
 
 vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+
+-- Quickfix: jump to the next/previous match, e.g. after Telescope's Ctrl+q sends a
+-- live_grep result set there (see telescope.lua). A file with several matches gets one
+-- quickfix row per match, so these two step through them without leaving the buffer.
+-- pcall guards the "no more items" error at the start/end of the list, so it fails
+-- quietly (a WARN notify) instead of an E553 in the command line.
+vim.keymap.set('n', ']q', function()
+  local ok, err = pcall(vim.cmd.cnext)
+  if not ok then
+    vim.notify(err, vim.log.levels.WARN)
+  end
+end, { desc = 'Next quickfix match' })
+
+vim.keymap.set('n', '[q', function()
+  local ok, err = pcall(vim.cmd.cprevious)
+  if not ok then
+    vim.notify(err, vim.log.levels.WARN)
+  end
+end, { desc = 'Previous quickfix match' })
