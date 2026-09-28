@@ -17,8 +17,10 @@ vim.keymap.set('n', '<leader>sn', '<cmd>noautocmd w <CR>', opts)
 -- quit file
 vim.keymap.set('n', '<C-q>', '<cmd> q <CR>', opts)
 
--- delete single character without copying into register
+-- delete/change without copying into register (only explicit yanks touch it)
 vim.keymap.set('n', 'x', '"_x', opts)
+vim.keymap.set({ 'n', 'v' }, 'd', '"_d', opts)
+vim.keymap.set({ 'n', 'v' }, 'c', '"_c', opts)
 
 -- Vertical scroll and center
 vim.keymap.set('n', '<C-d>', '<C-d>zz', opts)
