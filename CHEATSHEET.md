@@ -391,7 +391,7 @@ reading files off disk. See `lua/plugins/claudecode.lua` for the full "how it wo
 | Key | What it does |
 |---|---|
 | `Space + a + c` | Toggle the Claude terminal (opens in a right split, 30% width) |
-| `Ctrl + ]` (inside the Claude terminal) | Leave terminal-mode for normal mode in one chord (was `Ctrl+\` then `Ctrl+n`) — scroll back, search, yank; `i` goes back in |
+| `Ctrl + ]` (inside the Claude terminal) | Leave terminal-mode for normal mode in one chord (was `Ctrl+\` then `Ctrl+n`) — scroll back, search, yank; `i` goes back in. Not `Ctrl+\` on its own: Neovim reads it as the first half of `Ctrl+\ Ctrl+n` / `Ctrl+\ Ctrl+o` in terminal-mode, and vim-tmux-navigator already binds it in normal mode (`TmuxNavigatePrevious`) |
 | `Space + a + f` | Focus the Claude terminal |
 | `Space + a + r` | `--resume` — pick a past session of this project to continue. `Space+a+c` always starts a NEW session; this is the key for going back to an old one. Safest to exit the old session first (`/exit` in its own terminal) so two processes never write to the same conversation — what happens when it is still running elsewhere is untested. |
 | `Space + a + C` | `--continue` — jump straight into the most recent conversation in this directory, no picker (same advice: exit the old one first) |
@@ -467,6 +467,12 @@ workspace contains it — in a code window, never the Claude terminal, without m
 *before* the edit (so Neovim has the old text to diff against) and re-reads it right after. Claude
 runs `nvim-open.sh open <path>[:line]` when you ask to see a file. Needs the claudecode.nvim server
 running (`Space+a+c` once, or `:ClaudeCodeStart`); with no matching Neovim it silently does nothing.
+
+**Buffers Claude opened are closed when it finishes a reply** (the `Stop` hook runs
+`nvim-open.sh done` → `close_opened()`). Only buffers the hook itself loaded are touched — one you
+already had open, one with unsaved changes, and one you saved yourself are left alone — and the file
+still showing in a window stays until the next run replaces it. Stale leftovers from before this
+existed: `:bd <number>` (see `:ls`).
 
 ⚠️ `:source %` is honest only for plain options and keymaps. A plugin spec in `lua/plugins/` will
 not fully re-apply that way — quit and reopen Neovim for those.

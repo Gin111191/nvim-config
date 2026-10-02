@@ -32,6 +32,7 @@ vim.api.nvim_create_autocmd('BufWritePost', {
   callback = function(ev)
     snapshot(ev.buf)
     vim.api.nvim_buf_clear_namespace(ev.buf, ns, 0, -1)
+    vim.b[ev.buf].opened_by_claude = nil -- you saved it yourself: it is yours now, never auto-closed
   end,
 })
 -- Only when missing: an autoread reload fires BufReadPost BEFORE FileChangedShellPost, so
@@ -172,6 +173,7 @@ vim.api.nvim_create_autocmd('FileChangedShellPost', {
 function M.open(path, line)
   path = vim.fn.fnamemodify(path, ':p')
   local buf = vim.fn.bufnr(path)
+  local was_loaded = buf > 0 and vim.api.nvim_buf_is_loaded(buf)
   local win = buf > 0 and vim.fn.win_findbuf(buf)[1] or nil
   if not win then
     for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
@@ -194,6 +196,9 @@ function M.open(path, line)
       end)
     end
   end
+  if not was_loaded then -- a buffer you already had open is yours: only ones opened here get cleaned up
+    vim.b[vim.fn.bufnr(path)].opened_by_claude = true
+  end
   if line then
     vim.api.nvim_win_set_cursor(win, { math.max(tonumber(line) or 1, 1), 0 })
     vim.api.nvim_win_call(win, function()
@@ -201,6 +206,19 @@ function M.open(path, line)
     end)
   end
   return win
+end
+
+-- Close the buffers M.open loaded, once Claude is done (the Stop hook calls this over RPC).
+-- Skipped: a buffer with unsaved changes, one you saved yourself (flag cleared in BufWritePost),
+-- and one still showing in a window — the last file Claude touched stays on screen until the next
+-- one replaces it.
+-- ponytail: a buffer left showing survives this run and is only closed by a later one.
+function M.close_opened()
+  for _, b in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.b[b].opened_by_claude and not vim.bo[b].modified and #vim.fn.win_findbuf(b) == 0 then
+      pcall(vim.api.nvim_buf_delete, b, {})
+    end
+  end
 end
 
 function M.checktime()
