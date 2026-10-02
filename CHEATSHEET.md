@@ -183,7 +183,7 @@ tree is better for seeing where things sit, and for `a` `d` `r` `m` on files.
 | Key | What it does |
 |---|---|
 | **`Tab`** / **`Shift+Tab`** | Next / previous buffer |
-| **`Space + x`** | **Close the buffer** — ⚠️ runs `:bdelete!`, unsaved changes are lost |
+| **`Space + x`** | **Close the buffer, keep the windows** — ⚠️ runs `:Bdelete!` (vim-bbye), unsaved changes are lost |
 | `Space + b` | A new empty buffer |
 | `Space + \|` | Split the window **vertically** (tmux: `Prefix + \|`) |
 | `Space + -` | Split the window **horizontally** (tmux: `Prefix + -`) |
@@ -249,8 +249,13 @@ starts to feel slow.
 Almost all real work is bouncing between two files. `Ctrl + ^` does that in one key — pressing `Tab`
 nine times to get back where you were is wasted motion. It is the one to learn first.
 
-⚠️ **`Space + x` is `:bdelete!`, with the bang.** The bang means *do it anyway*: unsaved changes go
-in the bin, no question asked. `:bd` is the same thing without the bang — it stops and warns you.
+⚠️ **`Space + x` is `:Bdelete!`, with the bang.** The bang means *do it anyway*: unsaved changes go
+in the bin, no question asked. `:Bdelete` is the same thing without the bang — it stops and warns you.
+
+Capital **B** is vim-bbye's command, the same one the bufferline `✗` uses: the buffer goes but every
+window showing it stays, switching to another buffer, so splits keep their layout. The built-in
+lowercase `:bd` closes *every* window that shows the buffer and collapses the splits around it —
+that is why `Space + x` used to rearrange the panels.
 
 ### Buffers — bufferline's own commands
 
