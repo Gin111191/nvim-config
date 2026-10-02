@@ -390,6 +390,9 @@ no key is bound to it, but its commands are useful:
 
 ## AI — Claude in a tmux popup (`lua/core/claude-popup.lua`)
 
+> Why it is built this way, what broke along the way and how to check things when it misbehaves:
+> `docs/claude-popup-notes.md`.
+
 Claude is a **plain `claude` in a tmux pane**, shown in a **90% tmux popup** over Neovim. Inside the
 popup it is an ordinary terminal: every Claude key works, `Ctrl+b` reaches tmux, scrolling back is
 tmux's own. Hiding the popup never stops Claude. Needs Neovim running inside tmux (otherwise the
