@@ -404,7 +404,8 @@ tmux session (the one you work in)
 ```
 
 Each Claude lives in a **window of its own** in your session, named `·claude:<project>#<n>` — the
-"stash window". You see them in the status bar and in `Prefix + w`. Inside it, Claude runs in your
+"stash window". You see them in the status bar and in `Prefix + w`; `Shift + ←/→` skips them
+(tmux-config's `claude-window.sh`), `Prefix + n/p` and `Alt + <n>` do not. Inside it, Claude runs in your
 shell: `/exit` drops you to the shell prompt (in the same popup), where any `claude …` command works.
 
 ### Keys in Neovim
@@ -434,6 +435,7 @@ Claude's popup so you can add your question and send it. Details:
 |---|---|
 | **`Ctrl + b` then `d`** | **Hide the popup** — Claude keeps running in its window |
 | `Ctrl + b` then `[` | Scroll back (tmux copy mode; `q` to leave) |
+| `Shift + ←` / `Shift + →` | Close the popup and go to the previous / next window underneath |
 | `/exit` (in Claude) | Quit Claude → you are at a shell prompt, still in the popup |
 | `claude --resume` / `claude -c` / `claude --model …` (at that prompt) | Start Claude again any way you like |
 | `exit` (at that prompt) | Close the shell → the window and the popup close for good |

@@ -178,6 +178,9 @@ local function popup(e)
   tmux { 'set-option', '-t', view, 'status', 'off' }
   -- if the Claude window goes away while shown, close the popup instead of jumping to another session
   tmux { 'set-option', '-t', view, 'detach-on-destroy', 'on' }
+  -- where Shift+←/→ pressed inside the popup should move (tmux-config's claude-window.sh)
+  local origin = tmux { 'display-message', '-p', '-t', vim.env.TMUX_PANE, '#{session_id}' }
+  tmux { 'set-option', '-t', view, '@claude_origin', origin }
   tmux { 'select-pane', '-t', e.pane }
   local title = (' Claude · %s #%s '):format(vim.fs.basename(e.project ~= '' and e.project or e.cwd), e.n or '?')
   -- -S: same server as this Neovim's (TMUX is unset inside to avoid the "nested" refusal)
