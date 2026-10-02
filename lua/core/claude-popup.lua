@@ -269,7 +269,7 @@ local function open(e, dir, here)
 end
 
 -- Start a new Claude for `dir` in a stash window. `args` is one of the fixed strings in M.select,
--- or " attach <id>" with an id checked against [%w-]+ (background()).
+-- or " attach <id>" / " --resume <id>" with the id checked first (background(), past()).
 local function create(dir, here, args)
   local session = tmux { 'display-message', '-p', '-t', vim.env.TMUX_PANE, '#{session_id}' }
   local n = next_n(dir)
@@ -322,6 +322,81 @@ function M.toggle()
   end
 end
 
+-- Past conversations of `dir`, newest first, from Claude Code's transcripts in projects/<dir>/:
+-- named by their last custom-title / ai-title record. Left out: ones Claude continued under a
+-- newer id (a "continued-in" record — the newer one is listed instead) and near-empty stubs.
+local function past(dir)
+  local folder = ('%s/projects/%s'):format(claude_dir, (dir:gsub('[^%w]', '-')))
+  local ok, run = pcall(vim.system, {
+    'rg', '--no-config', '--with-filename', '-N', '--max-depth', '1', '-g', '*.jsonl',
+    '^\\{"type":"(ai-title|custom-title|continued-in)"', folder,
+  }, { text = true })
+  local out = ok and run:wait().stdout or '' -- rg reads 850 MB of transcripts in ~25 ms
+  local title, custom, continued = {}, {}, {}
+  for line in out:gmatch '[^\n]+' do
+    local file, json = line:match '^(.-%.jsonl):(.*)$'
+    local decoded, rec = pcall(vim.json.decode, json or '')
+    if decoded and type(rec) == 'table' then
+      local id = vim.fs.basename(file):sub(1, -7)
+      if rec.type == 'continued-in' then
+        continued[id] = true
+      elseif rec.type == 'custom-title' and type(rec.customTitle) == 'string' then
+        custom[id] = rec.customTitle
+      elseif rec.type == 'ai-title' and type(rec.aiTitle) == 'string' then
+        title[id] = rec.aiTitle
+      end
+    end
+  end
+  local ret = {}
+  for _, file in ipairs(vim.fn.glob(folder .. '/*.jsonl', false, true)) do
+    local id = vim.fs.basename(file):sub(1, -7)
+    local stat = vim.uv.fs_stat(file)
+    -- ponytail: under 2 kB is a placeholder with no conversation in it; raise it if real ones go missing
+    if stat and stat.size > 2048 and not continued[id] and id:match '^[%x%-]+$' then -- id goes into a shell command
+      ret[#ret + 1] = { id = id, title = custom[id] or title[id] or id:sub(1, 8), mtime = stat.mtime.sec }
+    end
+  end
+  table.sort(ret, function(a, b)
+    return a.mtime > b.mtime
+  end)
+  return ret
+end
+
+local function ref(e, dir)
+  return e.n and e.project == dir and ('#' .. e.n) or e.pane
+end
+
+-- Pick a past conversation in Neovim; nothing is started until one is picked, so cancelling leaves
+-- no window behind (as `claude --resume`'s own picker in a fresh window did). One already open in a
+-- window is shown there instead of being opened twice.
+local function open_past(dir, here, items)
+  local shown_in = {}
+  for _, e in ipairs(items) do
+    if e.conversation and not shown_in[e.conversation] then
+      shown_in[e.conversation] = e
+    end
+  end
+  local conversations = past(dir)
+  if #conversations == 0 then
+    return notify('No past conversations for this project', WARN)
+  end
+  vim.ui.select(conversations, {
+    prompt = 'Past conversations · ' .. vim.fs.basename(dir),
+    format_item = function(c)
+      local where = shown_in[c.id] and ('  ← open in ' .. ref(shown_in[c.id], dir)) or ''
+      return ('%s  %s  · %s%s'):format(os.date('%m-%d %H:%M', c.mtime), c.title, c.id:sub(1, 8), where)
+    end,
+  }, function(c)
+    if not c then
+      return
+    elseif shown_in[c.id] then
+      open(shown_in[c.id], dir, here)
+    else
+      create(dir, here, ' --resume ' .. c.id)
+    end
+  end)
+end
+
 function M.select()
   if not ready() then
     return
@@ -329,9 +404,6 @@ function M.select()
   local dir = root()
   local items, here = list(dir)
   local last = (current(dir, items, here, false) or {}).pane
-  local function ref(e)
-    return e.n and e.project == dir and ('#' .. e.n) or e.pane
-  end
   local bg, bg_by_id, bg_by_conversation = background(dir), {}, {}
   for _, s in ipairs(bg) do
     bg_by_id[s.id] = s
@@ -373,7 +445,7 @@ function M.select()
       label = label .. '  · ' .. e.conversation:sub(1, 8)
       for _, other in ipairs(open_in[e.conversation]) do
         if other ~= e then
-          label = label .. '  ⚠ same conversation as ' .. ref(other)
+          label = label .. '  ⚠ same conversation as ' .. ref(other, dir)
           break
         end
       end
@@ -408,14 +480,14 @@ function M.select()
   local bg_holder = latest and not holder and bg_by_conversation[latest]
   local continue_choice = { label = '+ Continue the latest conversation (claude --continue)', args = ' --continue' }
   if holder then
-    continue_choice = { label = ('+ Continue the latest conversation — already open in %s, shows that one'):format(ref(holder)), entry = holder }
+    continue_choice = { label = ('+ Continue the latest conversation — already open in %s, shows that one'):format(ref(holder, dir)), entry = holder }
   elseif bg_holder then
     continue_choice = { label = ('+ Continue the latest conversation — it runs in background %s, attaches to it'):format(bg_holder.id), args = ' attach ' .. bg_holder.id }
   end
   vim.list_extend(choices, {
     { label = '+ New Claude', args = '' },
     continue_choice,
-    { label = '+ Pick an old conversation (claude --resume)', args = ' --resume' },
+    { label = '+ Open a past conversation…', past = true },
   })
   pcall(require, 'telescope') -- loads telescope-ui-select, so vim.ui.select gets a proper picker
   vim.ui.select(choices, {
@@ -429,6 +501,10 @@ function M.select()
     end
     if c.entry then
       open(c.entry, dir, here)
+    elseif c.past then
+      vim.schedule(function() -- let this picker close before the next one opens
+        open_past(dir, here, items)
+      end)
     else
       create(dir, here, c.args)
     end

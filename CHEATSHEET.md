@@ -462,9 +462,24 @@ listed too (`☁`, from `claude agents --json`) — see below.
 │ ☁ background  "order-inventory…"  · 3101c4fc  [idle] — attach in a popup│  ← runs in the background
 │ + New Claude                                                           │
 │ + Continue the latest conversation — already open in #1, shows that one│
-│ + Pick an old conversation (claude --resume)                           │
+│ + Open a past conversation…                                            │
 └────────────────────────────────────────────────────────────────────────┘
 ```
+
+`+ Open a past conversation…` opens a second picker, in Neovim, with this project's conversations:
+
+```
+┌─ Past conversations · em.nhumay ────────────────────────────────────┐
+│ 10-02 21:31  order-inventory-settlement-design  · 3101c4fc  ← open in #1 │
+│ 10-02 20:33  Danh sách việc chờ  · bc1a6445                          │
+│ 10-02 07:26  Máy ngủ  · b2fae992                                     │
+│ …                                                                    │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+Newest first, named by Claude's own title for them. Left out: near-empty placeholders, and older
+ids Claude has continued under a newer one (only the newest of such a chain is listed). **Escape
+starts nothing** — no window is made until you pick.
 
 `· 6f02dad4` is the start of the **conversation** that Claude has open (Claude Code's session id).
 
@@ -474,24 +489,26 @@ listed too (`☁`, from `claude agents --json`) — see below.
 | A window of yours running only `claude` | It is renamed `·claude:<project>#<n>` and opens in the popup |
 | A pane you split **inside a stash window** | It gets its own stash window, then opens in the popup (a popup shows a whole window) |
 | A Claude **next to Neovim**, or in any other window of yours with several panes | **Nothing is moved** — the cursor jumps there |
-| `+ New` / `+ Pick an old one` | A new stash window running `claude` / `claude --resume` |
-| `☁ background …` | A new stash window running `claude attach <id>`, opened in the popup. Afterwards that window is listed as `#n … ☁ attached to background <id>` and the `☁` line goes away |
+| `+ New` | A new stash window running `claude` |
+| `+ Open a past conversation…` → a conversation | One marked `← open in #n`: shows that window. Any other: a new stash window running `claude --resume <id>` |
+| `☁ background …` | Only when the agents view is on (claude-config turns it off with `disableAgentView`). A new stash window running `claude attach <id>`, opened in the popup |
 | `+ Continue the latest conversation` | A new stash window running `claude --continue` — **unless** that conversation is already open: in a Claude listed here (shows that one) or in a background session (attaches to it) |
 
 Whatever you pick becomes **the Claude in use** for `Space a c` and the send keys.
 
-**Background session vs Claude in tmux.** A plain `claude` runs *inside* its tmux pane: close the
-pane and it is gone. A background session (`claude --bg`, or one started from Claude's own `←`
-agents view) runs in Claude Code's daemon, outside tmux; a terminal only *looks at* it through
-`claude attach <id>`, and closing that terminal leaves it running. `claude agents` lists them,
-`claude stop <id>` ends one (the conversation is kept). Picking `☁` here is the way in from Neovim —
-no need for `←`, which lists every project's background sessions and switches the conversation
-shown in the window you are in (the popup title would then name the wrong project).
+**No background sessions.** claude-config sets `disableAgentView: true`, which turns off Claude
+Code's agents view (`←` in the prompt, `claude agents`), `--bg`, `/background` and its daemon. So
+every Claude is a plain process in a tmux pane — tmux keeps it alive when you close the popup,
+quit Neovim or detach — and each conversation is open in exactly one place. With the agents view
+on, it moved conversations into the daemon behind the popup's back: forked copies, a window titled
+for one project showing another's conversation, `--resume` refusing "running elsewhere". Delete
+that setting to have it back; the `☁` lines then list the project's background sessions.
 
 **⚠ same conversation as #n** — two Claudes have **one** conversation open and both write to it,
 so their messages interleave. It happens when `claude --continue` (or `--resume` of the same
 conversation) is run while that conversation is already open elsewhere. Fix: in one of them,
-`/exit`, then `claude` (a new conversation) or `claude --resume` and pick a different one.
+`/exit`, then `claude` (a new conversation) — or open conversations through `Space a s` →
+`+ Open a past conversation…`, which never opens one twice.
 
 ### Housekeeping
 
@@ -509,7 +526,7 @@ conversation) is run while that conversation is already open elsewhere. Fix: in 
 | `Space + a + c` | Toggle the Claude split in Neovim | Popup on the Claude in use (hide it with `Ctrl+b d`) |
 | `Space + a + s` | Send selection (visual) | List / start Claudes of this project; sending is `Space a t` / `v` |
 | `Space + a + f` | Focus the Claude terminal | Send the current file |
-| `Space + a + a/b/d/r/C/m` | Accept/deny diff, add buffer, resume, continue, model | **Gone** — `+ Continue` / `+ Pick an old one` in `Space a s`, `/model` in Claude |
+| `Space + a + a/b/d/r/C/m` | Accept/deny diff, add buffer, resume, continue, model | **Gone** — `+ Continue` / `+ Open a past conversation…` in `Space a s`, `/model` in Claude |
 | `/ide` in Claude | Connected to this Neovim | Nothing to connect to — no IDE server any more |
 
 **Rolling back to claudecode.nvim** (this setup lives on branch `try-claude-popup` of nvim-config and
