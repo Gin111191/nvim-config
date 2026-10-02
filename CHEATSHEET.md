@@ -387,8 +387,8 @@ reading files off disk. See `lua/plugins/claudecode.lua` for the full "how it wo
 |---|---|
 | `Space + a + c` | Toggle the Claude terminal (opens in a right split, 30% width) |
 | `Space + a + f` | Focus the Claude terminal |
-| `Space + a + r` | `--resume` — pick a past session to continue. ⚠️ If that session is still live elsewhere (e.g. the terminal/tmux pane you are reading this from), it CANNOT attach to the same running process — it starts a COPY instead (a new session ID from that point on) and says so. Only joins the same ID once the original has actually stopped. |
-| `Space + a + C` | `--continue` — resume the most recent conversation in this directory (same copy-vs-same-ID caveat as above) |
+| `Space + a + r` | `--resume` — pick a past session of this project to continue. `Space+a+c` always starts a NEW session; this is the key for going back to an old one. Safest to exit the old session first (`/exit` in its own terminal) so two processes never write to the same conversation — what happens when it is still running elsewhere is untested. |
+| `Space + a + C` | `--continue` — jump straight into the most recent conversation in this directory, no picker (same advice: exit the old one first) |
 | `Space + a + m` | Pick which Claude model to use |
 | `Space + a + b` | Add the current buffer to Claude's context |
 | `Space + a + s` (visual mode) | Send the selected text to Claude |
@@ -397,7 +397,7 @@ reading files off disk. See `lua/plugins/claudecode.lua` for the full "how it wo
 | `Space + a + d` | Deny the diff Claude proposed |
 
 **To bring the conversation you are ALREADY in (e.g. a terminal session, not one freshly opened by
-`Space+a+c`) into this same Neovim** — do not resume: get the server running first (`Space+a+c`
+`Space+a+c`) into this same Neovim** — no need to resume anything: get the server running first (`Space+a+c`
 once, or `:ClaudeCodeStart`), then from that existing terminal session type the slash command
 `/ide` (not something this cheatsheet's keys can trigger — it has to be typed inside the running
 Claude session itself). It scans the same `~/.claude/ide/*.lock` file and connects THAT live
