@@ -63,9 +63,9 @@ local function interactive_claude(args)
   return true
 end
 
--- Set of pids that are an interactive claude or one of its ancestors: a pane holds a Claude when
--- its pane_pid (usually the shell) is in here.
-local function claude_ancestors()
+-- pid → the interactive claude it is, or is an ancestor of: a pane holds a Claude when its
+-- pane_pid (usually the shell) is in here, and the value says which claude process.
+local function claude_owners()
   local out = vim.system({ 'ps', '-A', '-o', 'pid=,ppid=,args=' }, { text = true }):wait().stdout or ''
   local parent, found = {}, {}
   for line in out:gmatch '[^\n]+' do
@@ -77,14 +77,38 @@ local function claude_ancestors()
       end
     end
   end
-  local set = {}
-  for _, pid in ipairs(found) do
-    while pid and pid ~= '0' and not set[pid] do
-      set[pid] = true
+  local owner = {}
+  for _, claude in ipairs(found) do
+    local pid = claude
+    while pid and pid ~= '0' and not owner[pid] do
+      owner[pid] = claude
       pid = parent[pid]
     end
   end
-  return set
+  return owner
+end
+
+local claude_dir = vim.env.CLAUDE_CONFIG_DIR or (vim.env.HOME .. '/.claude')
+
+-- The conversation a running claude has open: Claude Code writes sessions/<pid>.json for each one.
+local function conversation(pid)
+  local ok, data = pcall(function()
+    return vim.json.decode(table.concat(vim.fn.readfile(('%s/sessions/%s.json'):format(claude_dir, pid)), '\n'))
+  end)
+  return ok and type(data) == 'table' and data.sessionId or nil
+end
+
+-- The conversation `claude --continue` started in `dir` opens: the newest transcript Claude Code
+-- keeps for that folder, in projects/<the path with every non-alphanumeric character as '-'>.
+local function latest_conversation(dir)
+  local newest, time = nil, -1
+  for _, file in ipairs(vim.fn.glob(('%s/projects/%s/*.jsonl'):format(claude_dir, (dir:gsub('[^%w]', '-'))), false, true)) do
+    local stat = vim.uv.fs_stat(file)
+    if stat and stat.mtime.sec > time then
+      newest, time = vim.fn.fnamemodify(file, ':t:r'), stat.mtime.sec
+    end
+  end
+  return newest
 end
 
 local FORMAT = table.concat({
@@ -103,7 +127,7 @@ local FORMAT = table.concat({
 -- Every Claude of project `dir` (plus its stash windows sitting at a shell prompt), lowest #n first.
 local function list(dir)
   local here = tmux { 'display-message', '-p', '-t', vim.env.TMUX_PANE, '#{window_id}' }
-  local claude = claude_ancestors()
+  local owner = claude_owners()
   local items = {}
   for line in (tmux { 'list-panes', '-a', '-F', FORMAT } or ''):gmatch '[^\n]+' do
     local f = vim.split(line, '\t')
@@ -117,8 +141,9 @@ local function list(dir)
       project = f[8],
       n = tonumber(f[9]),
       stash = f[10] == '1',
-      claude = claude[f[2]] == true,
+      claude = owner[f[2]] ~= nil,
     }
+    e.conversation = e.claude and conversation(owner[f[2]]) or nil
     if (e.claude and inside(e.cwd, dir)) or (e.project == dir and e.stash) then
       e.side = e.window == here
       items[#items + 1] = e
@@ -275,6 +300,18 @@ function M.select()
   local dir = root()
   local items, here = list(dir)
   local last = (current(dir, items, here, false) or {}).pane
+  local function ref(e)
+    return e.n and e.project == dir and ('#' .. e.n) or e.pane
+  end
+  -- Two Claudes on one conversation both write to it and interleave their messages (what
+  -- `claude --continue` does when the latest conversation is already open): flag it.
+  local open_in = {} ---@type table<string, table[]>
+  for _, e in ipairs(items) do
+    if e.conversation then
+      open_in[e.conversation] = open_in[e.conversation] or {}
+      table.insert(open_in[e.conversation], e)
+    end
+  end
   local choices = {}
   for _, e in ipairs(items) do
     local state = e.claude and 'claude' or 'shell'
@@ -290,14 +327,28 @@ function M.select()
     else
       label = ('window "%s" (%s) — becomes a ·claude window, opens here'):format(e.wname, e.pane)
     end
+    if e.conversation then
+      label = label .. '  · ' .. e.conversation:sub(1, 8)
+      for _, other in ipairs(open_in[e.conversation]) do
+        if other ~= e then
+          label = label .. '  ⚠ same conversation as ' .. ref(other)
+          break
+        end
+      end
+    end
     if e.pane == last then
       label = label .. '  (in use)'
     end
     choices[#choices + 1] = { label = label, entry = e }
   end
+  local latest = latest_conversation(dir)
+  local holder = latest and open_in[latest] and open_in[latest][1]
   vim.list_extend(choices, {
     { label = '+ New Claude', args = '' },
-    { label = '+ Continue the latest conversation (claude --continue)', args = ' --continue' },
+    holder and {
+      label = ('+ Continue the latest conversation — already open in %s, shows that one'):format(ref(holder)),
+      entry = holder,
+    } or { label = '+ Continue the latest conversation (claude --continue)', args = ' --continue' },
     { label = '+ Pick an old conversation (claude --resume)', args = ' --resume' },
   })
   pcall(require, 'telescope') -- loads telescope-ui-select, so vim.ui.select gets a proper picker

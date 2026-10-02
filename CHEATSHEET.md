@@ -450,17 +450,21 @@ machine or in a folder outside the project is not seen.
 
 ```
 ┌─ Claude · job-application-tracker ─────────────────────────────────┐
-│ #1  ·claude:job-application-tracker#1  [claude]  (in use)           │
-│ #2  ·claude:job-application-tracker#2  [shell]                      │  ← exited, at its shell
-│ window "zsh" (%17) — becomes a ·claude window, opens here           │  ← you ran claude there
-│ pane %23, split inside ·claude:…#1 — moves to its own window, …     │  ← you split a stash window
-│ ↪ pane next to Neovim (%19) — jump to it                            │  ← left where it is
-│ ↪ window "mywork" (%21) — jump to it                                │  ← left where it is
-│ + New Claude                                                         │
-│ + Continue the latest conversation (claude --continue)               │
-│ + Pick an old conversation (claude --resume)                         │
-└──────────────────────────────────────────────────────────────────────┘
+│ #1  ·claude:job-application-tracker#1  [claude]  · 6f02dad4  (in use) │
+│ #2  ·claude:job-application-tracker#2  [shell]                        │  ← exited, at its shell
+│ #3  ·claude:job-application-tracker#3  [claude]  · 6f02dad4  ⚠ same   │  ← same conversation as #1
+│       conversation as #1                                              │
+│ window "zsh" (%17) — becomes a ·claude window, opens here             │  ← you ran claude there
+│ pane %23, split inside ·claude:…#1 — moves to its own window, …       │  ← you split a stash window
+│ ↪ pane next to Neovim (%19) — jump to it                              │  ← left where it is
+│ ↪ window "mywork" (%21) — jump to it                                  │  ← left where it is
+│ + New Claude                                                           │
+│ + Continue the latest conversation — already open in #1, shows that one│
+│ + Pick an old conversation (claude --resume)                           │
+└────────────────────────────────────────────────────────────────────────┘
 ```
+
+`· 6f02dad4` is the start of the **conversation** that Claude has open (Claude Code's session id).
 
 | What you pick | What happens |
 |---|---|
@@ -468,9 +472,15 @@ machine or in a folder outside the project is not seen.
 | A window of yours running only `claude` | It is renamed `·claude:<project>#<n>` and opens in the popup |
 | A pane you split **inside a stash window** | It gets its own stash window, then opens in the popup (a popup shows a whole window) |
 | A Claude **next to Neovim**, or in any other window of yours with several panes | **Nothing is moved** — the cursor jumps there |
-| `+ New` / `+ Continue` / `+ Pick an old one` | A new stash window running `claude` / `claude --continue` / `claude --resume` |
+| `+ New` / `+ Pick an old one` | A new stash window running `claude` / `claude --resume` |
+| `+ Continue the latest conversation` | A new stash window running `claude --continue` — **unless** that conversation is already open in one of the Claudes listed: then the line says so and shows that Claude instead |
 
 Whatever you pick becomes **the Claude in use** for `Space a c` and the send keys.
+
+**⚠ same conversation as #n** — two Claudes have **one** conversation open and both write to it,
+so their messages interleave. It happens when `claude --continue` (or `--resume` of the same
+conversation) is run while that conversation is already open elsewhere. Fix: in one of them,
+`/exit`, then `claude` (a new conversation) or `claude --resume` and pick a different one.
 
 ### Housekeeping
 
