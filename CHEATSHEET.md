@@ -376,6 +376,35 @@ no key is bound to it, but its commands are useful:
 
 ---
 
+## AI — Claude Code (`coder/claudecode.nvim`)
+
+Not a terminal wrapper: `<leader>ac` makes THIS Neovim open a WebSocket/MCP server and write its
+address to `~/.claude/ide/<port>.lock`; the `claude` CLI then connects to it, so it sees the live
+buffer/cursor/selection and can push proposed edits as a real Neovim diff split, instead of just
+reading files off disk. See `lua/plugins/claudecode.lua` for the full "how it works" writeup.
+
+| Key | What it does |
+|---|---|
+| `Space + a + c` | Toggle the Claude terminal (opens in a right split, 30% width) |
+| `Space + a + f` | Focus the Claude terminal |
+| `Space + a + r` | `--resume` — pick a past session to continue. ⚠️ If that session is still live elsewhere (e.g. the terminal/tmux pane you are reading this from), it CANNOT attach to the same running process — it starts a COPY instead (a new session ID from that point on) and says so. Only joins the same ID once the original has actually stopped. |
+| `Space + a + C` | `--continue` — resume the most recent conversation in this directory (same copy-vs-same-ID caveat as above) |
+| `Space + a + m` | Pick which Claude model to use |
+| `Space + a + b` | Add the current buffer to Claude's context |
+| `Space + a + s` (visual mode) | Send the selected text to Claude |
+| `Space + a + s` (in Neo-tree/oil/netrw) | Add the file under the cursor to context |
+| `Space + a + a` | Accept the diff Claude proposed |
+| `Space + a + d` | Deny the diff Claude proposed |
+
+**To bring the conversation you are ALREADY in (e.g. a terminal session, not one freshly opened by
+`Space+a+c`) into this same Neovim** — do not resume: get the server running first (`Space+a+c`
+once, or `:ClaudeCodeStart`), then from that existing terminal session type the slash command
+`/ide` (not something this cheatsheet's keys can trigger — it has to be typed inside the running
+Claude session itself). It scans the same `~/.claude/ide/*.lock` file and connects THAT live
+session directly, with no fork, no copy, no new session ID.
+
+---
+
 ## Editing text
 
 | Key | What it does |
