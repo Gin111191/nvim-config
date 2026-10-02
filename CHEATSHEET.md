@@ -201,6 +201,11 @@ tree is better for seeing where things sit, and for `a` `d` `r` `m` on files.
 > leftmost nvim window and pressing `Ctrl+h` jumps straight into the tmux pane beside it — one set
 > of keys for both, with no need to know where you are.
 >
+> **Inside a terminal buffer** (the Claude split from `Space+a+c`, `:terminal`) the same four keys
+> also work in one press — `lua/core/keymaps.lua` maps them in terminal-mode. The cost: there,
+> `Ctrl+j/k` no longer reach the program inside, so in Claude's prompt use `Shift+Enter` (or `\`
+> then Enter) for a new line instead of `Ctrl+j`.
+>
 > Both sides are needed: the plugin on the nvim side (already here) **and** the "Seamless navigation
 > with Neovim" section in [tmux-config](https://github.com/Gin111191/tmux-config). Without the tmux
 > half it only works one way.
