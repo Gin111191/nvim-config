@@ -31,6 +31,7 @@ require('lazy').setup {
   require 'plugins.comment',
   require 'plugins.render-markdown',
   require 'plugins.image',
+  require 'plugins.claudecode',
 }
 
 -- The line beneath this is called `modeline`. See `:help modeline`
