@@ -445,6 +445,15 @@ Yank `y` and paste `p` go through the **system clipboard** (`clipboard = 'unname
 | `:checktime` | Reload only if the file changed on disk underneath you |
 | `:source %` | Re-apply the config file you are looking at, without restarting |
 
+**Files changed behind Neovim's back** (Claude over the IDE connection, a formatter, git) reload by
+themselves within about a second — a 1 s timer plus `FocusGained`/`CursorHold` run `:checktime`
+(`lua/core/options.lua`), including while the cursor sits in the Claude terminal split. When that
+happens the changed lines flash for 5 s and a **side-by-side diff opens in the window showing the
+file: the text before on the left, after on the right**. Close it with `:q` on the left half (diff
+mode turns itself off). Don't want the split: `vim.g.external_change_split = false`. Only buffers
+loaded before the change are tracked; a manual `:e!` can leave a stale "before" that shows a few
+extra lines on the next change.
+
 ⚠️ `:source %` is honest only for plain options and keymaps. A plugin spec in `lua/plugins/` will
 not fully re-apply that way — quit and reopen Neovim for those.
 
