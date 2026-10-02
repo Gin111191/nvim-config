@@ -47,3 +47,25 @@ vim.opt.iskeyword:append '-' -- Hyphenated words recognized by searches (default
 vim.opt.formatoptions:remove { 'c', 'r', 'o' } -- Don't insert the current comment leader automatically for auto-wrapping comments using 'textwidth', hitting <Enter> in insert mode, or hitting 'o' or 'O' in normal mode. (default: 'croql')
 vim.opt.runtimepath:remove '/usr/share/vim/vimfiles' -- Separate Vim plugins from Neovim in case Vim still in use (default: includes this path if Vim is installed)
 vim.o.foldlevelstart = 99 -- Open files with every fold expanded; treesitter.lua turns folding on but never sets foldlevel, so Neovim's default of 0 (everything closed) applied (default: -1)
+
+-- 'autoread' only re-reads a changed file when something runs :checktime, and Neovim runs it by
+-- itself only on FocusGained. Anything else that writes a file while it is open here (Claude over
+-- the IDE connection, a formatter, git) therefore shows up late. Run it on the events below too.
+-- CursorHold never fires in terminal-mode, so the Claude split would starve the autocmd; the 1s
+-- timer covers the case where the cursor is sitting in that split while the file changes.
+local checktime_group = vim.api.nvim_create_augroup('AutoChecktime', { clear = true })
+vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI' }, {
+  group = checktime_group,
+  desc = 'Re-read files that changed on disk',
+  callback = function()
+    if vim.fn.mode() ~= 'c' then
+      vim.cmd 'checktime'
+    end
+  end,
+})
+local checktime_timer = (vim.uv or vim.loop).new_timer()
+checktime_timer:start(1000, 1000, vim.schedule_wrap(function()
+  if vim.fn.mode() ~= 'c' then
+    vim.cmd 'silent! checktime'
+  end
+end))
