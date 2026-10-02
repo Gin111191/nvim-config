@@ -201,10 +201,10 @@ tree is better for seeing where things sit, and for `a` `d` `r` `m` on files.
 > leftmost nvim window and pressing `Ctrl+h` jumps straight into the tmux pane beside it — one set
 > of keys for both, with no need to know where you are.
 >
-> **Inside a terminal buffer** (the Claude split from `Space+a+c`, `:terminal`) the same four keys
-> also work in one press — `lua/core/keymaps.lua` maps them in terminal-mode. The cost: there,
-> `Ctrl+j/k` no longer reach the program inside, so in Claude's prompt use `Shift+Enter` (or `\`
-> then Enter) for a new line instead of `Ctrl+j`.
+> **Inside a terminal buffer** (`:terminal`) the same four keys also work in one press —
+> `lua/core/keymaps.lua` maps them in terminal-mode, so there they no longer reach the program
+> inside. **Not in the Claude float**: a float has nothing beside it to move to, so there
+> `Ctrl+h/j/k/l` stay Claude's own (`Ctrl+j` = new line, `Ctrl+k` = delete to end of line).
 >
 > Both sides are needed: the plugin on the nvim side (already here) **and** the "Seamless navigation
 > with Neovim" section in [tmux-config](https://github.com/Gin111191/tmux-config). Without the tmux
@@ -386,33 +386,112 @@ no key is bound to it, but its commands are useful:
 
 ---
 
-## AI — Claude Code (`coder/claudecode.nvim`)
+## AI — Claude in a float (`folke/sidekick.nvim`)
 
-Not a terminal wrapper: `<leader>ac` makes THIS Neovim open a WebSocket/MCP server and write its
-address to `~/.claude/ide/<port>.lock`; the `claude` CLI then connects to it, so it sees the live
-buffer/cursor/selection and can push proposed edits as a real Neovim diff split, instead of just
-reading files off disk. See `lua/plugins/claudecode.lua` for the full "how it works" writeup.
+Claude runs in a **floating terminal** (90% × 90%) on top of your code. Behind it is a **tmux
+session of its own**, one per project folder: hiding the float, detaching, even quitting Neovim
+never stops Claude — `Space a c` in the same folder brings the same conversation back. Claude edits
+files itself and asks for permission in its own prompt; review the result with `Space g d` (below).
+See `lua/plugins/sidekick.lua` for the why.
 
 | Key | What it does |
 |---|---|
-| `Space + a + c` | Toggle the Claude terminal (opens in a right split, 30% width) |
-| `Ctrl + ]` (inside the Claude terminal) | Leave terminal-mode for normal mode in one chord (was `Ctrl+\` then `Ctrl+n`) — scroll back, search, yank; `i` goes back in. Not `Ctrl+\` on its own: Neovim reads it as the first half of `Ctrl+\ Ctrl+n` / `Ctrl+\ Ctrl+o` in terminal-mode, and vim-tmux-navigator already binds it in normal mode (`TmuxNavigatePrevious`) |
-| `Space + a + f` | Focus the Claude terminal |
-| `Space + a + r` | `--resume` — pick a past session of this project to continue. `Space+a+c` always starts a NEW session; this is the key for going back to an old one. Safest to exit the old session first (`/exit` in its own terminal) so two processes never write to the same conversation — what happens when it is still running elsewhere is untested. |
-| `Space + a + C` | `--continue` — jump straight into the most recent conversation in this directory, no picker (same advice: exit the old one first) |
-| `Space + a + m` | Pick which Claude model to use |
-| `Space + a + b` | Add the current buffer to Claude's context |
-| `Space + a + s` (visual mode) | Send the selected text to Claude |
-| `Space + a + s` (in Neo-tree/oil/netrw) | Add the file under the cursor to context |
-| `Space + a + a` | Accept the diff Claude proposed |
-| `Space + a + d` | Deny the diff Claude proposed |
+| **`Space + a + c`** | **Show / hide the Claude float** for this project (starts Claude the first time) |
+| `Space + a + s` | Pick a session: every Claude sidekick can see in tmux, any project, plus tools not started yet |
+| `Space + a + d` | Detach from the session — the float goes, Claude keeps running in tmux |
+| `Space + a + t` | Send **this**: the line under the cursor, or the selection — as `@file#L10-20` |
+| `Space + a + v` (visual) | Send the selected **text** itself |
+| `Space + a + f` | Send the current **file** (`@path`) |
+| `Space + a + p` | Pick a ready-made prompt: explain, fix, review, tests, diagnostics, … (normal or visual) |
 
-**To bring the conversation you are ALREADY in (e.g. a terminal session, not one freshly opened by
-`Space+a+c`) into this same Neovim** — no need to resume anything: get the server running first (`Space+a+c`
-once, or `:ClaudeCodeStart`), then from that existing terminal session type the slash command
-`/ide` (not something this cheatsheet's keys can trigger — it has to be typed inside the running
-Claude session itself). It scans the same `~/.claude/ide/*.lock` file and connects THAT live
-session directly, with no fork, no copy, no new session ID.
+**Inside the float** (keys belong to that buffer only):
+
+| Key | What it does |
+|---|---|
+| `Ctrl + q` (typing to Claude) | Leave terminal-mode for normal mode — scroll, search, yank; `i` goes back in |
+| `Ctrl + ]` | The same, kept from before (`lua/core/keymaps.lua`, every terminal) |
+| `q` or `Ctrl + q` (normal mode) | **Hide the float** — so from the prompt: `Ctrl+q` `Ctrl+q` |
+| `Ctrl + z` | Jump back to your code window; the float stays where it is |
+| `Ctrl + p` | Insert a prompt or context from the picker into what you are typing |
+| `Ctrl + f` | Pick a file and insert it as `@path` |
+| `Ctrl + h/j/k/l` | Go to **Claude** (`Ctrl+j` new line, `Ctrl+k` delete to end of line) — no window navigation in a float |
+
+Inside Claude itself: `/resume` to go back to an older conversation, `/model` to switch model —
+there are no Neovim keys for those any more.
+
+**More than one Claude in the same project.** Sidekick names a session after tool + folder, so
+`Space a c` always gives the one Claude of this project. For a second one, open a tmux window
+(`Prefix + c`) and run `claude` there. `Space a s` finds it (it scans every tmux pane for a running
+`claude`) and can send context to it, but only the project's own session shows in the float — the
+others you visit in tmux.
+
+### What changed from claudecode.nvim — keys that moved
+
+| Key | Before | Now |
+|---|---|---|
+| `Space + a + f` | Focus the Claude terminal | Send the current file |
+| `Space + a + d` | Deny a proposed diff | Detach from the session |
+| `Space + a + s` | Send selection (visual only) | Session picker (normal); send selection is `Space a t` / `Space a v` |
+| `Space + a + a/b/r/C/m` | Accept diff / add buffer / resume / continue / model | **Gone** — `Space a f`, `/resume`, `/model` cover them |
+| `Ctrl + q` in the Claude window | Quit Neovim | Leave terminal-mode, then hide the float (only in that buffer; elsewhere still Quit) |
+| `/ide` in Claude | Connected to this Neovim | Nothing to connect to — no IDE server any more |
+
+### Known rough edges (not tested yet)
+
+- **tmux inside tmux.** The float shows a tmux session, inside a Neovim that is itself in tmux.
+  `Ctrl+b` always goes to the outer tmux, so the inner one's prefix is out of reach (Claude's own
+  `Ctrl+b` too). Scrolling back in normal mode may only show the current screen, since the inner
+  tmux redraws it — use Claude's `Ctrl+o` (transcript) for history.
+- **`Ctrl + .`** (sidekick's default hide/focus key) does not get through tmux here (no
+  `extended-keys`), which is why it is not used above.
+- `:checkhealth sidekick` reports an **ERROR about the Copilot LSP** and warnings for every other AI
+  CLI: expected — Copilot's "next edit" half is switched off and only `claude` is installed.
+
+**Rolling back to claudecode.nvim** (this setup lives on branch `try-sidekick` of nvim-config and
+claude-config): `git checkout main` in `~/.local/share/nvim-config`, open Neovim, `:Lazy restore`
+(puts claudecode.nvim back at its locked commit), `:Lazy clean` (drops sidekick and codediff),
+restart. Same `git checkout main` in `~/claude-config`, then copy `hooks/nvim-open.sh` to
+`~/.claude/hooks/` — although the hook on this branch reads both registries, so it works either way.
+
+---
+
+## Reviewing what Claude changed — `esmuellert/codediff.nvim`
+
+VSCode-style diffs in a tab of their own: changed files on the left, the diff on the right,
+refreshing by itself while Claude keeps editing. Moving `j`/`k` in the file list opens each diff at
+once (`auto_open_on_cursor`). It compares with `HEAD`, so **your own uncommitted edits show up too**
+— stage them first (`-` / `S`) if you want "Changes" to be only what Claude did.
+
+| Key | What it does |
+|---|---|
+| **`Space + g + d`** | **Every changed file** (working tree vs HEAD) |
+| `Space + g + f` | This file vs HEAD |
+| `Space + g + h` | History of this file — pick a commit to see its diff |
+| `Space + g + H` | History of the whole repo |
+
+**Inside the CodeDiff tab** (only there):
+
+| Key | What it does |
+|---|---|
+| `j` / `k` (file list) | Move — and open that file's diff |
+| `]c` / `[c` | Next / previous change |
+| `]f` / `[f` | Next / previous file |
+| `-` | Stage / unstage this file |
+| `S` / `U` (file list) | Stage all / unstage all |
+| `Space + h + s` / `h + u` | Stage / unstage the hunk under the cursor |
+| `Space + h + r` | ⚠️ Throw the hunk away (working tree) |
+| `X` (file list) | ⚠️ Throw away all changes to that file |
+| `t` | Switch side-by-side ⇄ inline |
+| `gc` | Fold unchanged code (compact) |
+| `gf` | Open the file in your normal tab |
+| `R` (file list) | Refresh |
+| `g?` | Every key |
+| `q` | Close the CodeDiff tab |
+
+Inside that tab a few of your own keys are shadowed: `Space b` toggles the file list (not "new
+buffer"), `Space e` focuses it (not Neo-tree), `t` is the layout toggle (not the `t` motion), and
+`Space h` (resize) waits a moment because `Space h s/u/r` exist there. Everywhere else they are
+unchanged.
 
 ---
 
@@ -451,9 +530,9 @@ Yank `y` and paste `p` go through the **system clipboard** (`clipboard = 'unname
 | `:checktime` | Reload only if the file changed on disk underneath you |
 | `:source %` | Re-apply the config file you are looking at, without restarting |
 
-**Files changed behind Neovim's back** (Claude over the IDE connection, a formatter, git) reload by
+**Files changed behind Neovim's back** (Claude, a formatter, git) reload by
 themselves within about a second — a 1 s timer plus `FocusGained`/`CursorHold` run `:checktime`
-(`lua/core/options.lua`), including while the cursor sits in the Claude terminal split. What you see
+(`lua/core/options.lua`), including while the cursor sits in the Claude float. What you see
 is set by `:ChangeMode` (`lua/core/external-change.lua`):
 
 | Mode | What it looks like |
@@ -468,10 +547,13 @@ tracked; a manual `:e!` can leave a stale "before" that shows a few extra lines 
 
 **Claude opens and shows files by itself.** `~/.claude/hooks/nvim-open.sh` (repo `claude-config`)
 is wired to `PreToolUse`/`PostToolUse` on Edit/Write: it opens the file in the Neovim whose
-workspace contains it — in a code window, never the Claude terminal, without moving your focus —
+workspace contains it — in a code window, never a terminal or the float, without moving your focus —
 *before* the edit (so Neovim has the old text to diff against) and re-reads it right after. Claude
-runs `nvim-open.sh open <path>[:line]` when you ask to see a file. Needs the claudecode.nvim server
-running (`Space+a+c` once, or `:ClaudeCodeStart`); with no matching Neovim it silently does nothing.
+runs `nvim-open.sh open <path>[:line]` when you ask to see a file. It finds Neovim through
+`~/.cache/nvim-claude/<pid>.json`, which every Neovim writes at startup (`lua/core/nvim-registry.lua`)
+with its working folder — so start Neovim in the project folder (or a parent of it). Works for any
+Claude on this machine, in the float or in a plain tmux pane; with no matching Neovim it silently
+does nothing.
 
 **Buffers Claude opened are closed when it finishes a reply** (the `Stop` hook runs
 `nvim-open.sh done` → `close_opened()`). Only buffers the hook itself loaded are touched — one you
