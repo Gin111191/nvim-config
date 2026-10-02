@@ -2,6 +2,7 @@ require 'core.options' -- Load general options
 require 'core.keymaps' -- Load general keymaps
 require 'core.external-change' -- Show what changed when a file is rewritten by something else
 require 'core.nvim-registry' -- Let Claude's nvim-open.sh hooks find this Neovim
+require 'core.claude-popup' -- Claude Code in a tmux popup per project (Space a …)
 require 'core.snippets' -- Custom code snippets
 
 -- Set up the Lazy plugin manager
@@ -33,7 +34,6 @@ require('lazy').setup {
   require 'plugins.comment',
   require 'plugins.render-markdown',
   require 'plugins.image',
-  require 'plugins.sidekick',
   require 'plugins.codediff',
 }
 

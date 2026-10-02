@@ -51,8 +51,8 @@ vim.o.foldlevelstart = 99 -- Open files with every fold expanded; treesitter.lua
 -- 'autoread' only re-reads a changed file when something runs :checktime, and Neovim runs it by
 -- itself only on FocusGained. Anything else that writes a file while it is open here (Claude,
 -- a formatter, git) therefore shows up late. Run it on the events below too.
--- CursorHold never fires in terminal-mode, so the Claude float would starve the autocmd; the 1s
--- timer covers the case where the cursor is sitting in that float while the file changes.
+-- CursorHold never fires in terminal-mode, and FocusGained does not fire when a tmux popup over
+-- Neovim closes; the 1s timer covers both.
 local checktime_group = vim.api.nvim_create_augroup('AutoChecktime', { clear = true })
 vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI' }, {
   group = checktime_group,

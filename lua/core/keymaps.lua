@@ -89,18 +89,14 @@ vim.keymap.set('n', '<leader>xs', ':close<CR>', opts) -- close current split win
 -- terminal-mode every key goes to the program inside, so Ctrl+h/j/k/l would need
 -- <C-\><C-n> first. These buffer-local terminal-mode maps call the same plugin
 -- commands, so one press leaves the terminal. Cost: inside a terminal buffer
--- Ctrl+h/j/k/l no longer reach the program.
--- Not in the Claude float (sidekick.nvim, filetype set before TermOpen fires): a float has no
--- neighbouring window to move to, so there the keys stay claude's own (Ctrl+j = newline,
--- Ctrl+k = kill-line); hide the float with Ctrl+q Ctrl+q instead.
+-- Ctrl+h/j/k/l no longer reach the program. (Claude itself runs in tmux, not in a
+-- Neovim terminal — lua/core/claude-popup.lua — so its own Ctrl+j/k are untouched.)
 vim.api.nvim_create_autocmd('TermOpen', {
   desc = 'Ctrl+h/j/k/l leave a terminal buffer in one press (vim-tmux-navigator)',
   callback = function(ev)
     local dirs = { h = 'Left', j = 'Down', k = 'Up', l = 'Right' }
     for key, dir in pairs(dirs) do
-      if vim.bo[ev.buf].filetype ~= 'sidekick_terminal' then
-        vim.keymap.set('t', '<C-' .. key .. '>', '<cmd>TmuxNavigate' .. dir .. '<cr>', { buffer = ev.buf, desc = 'Navigate ' .. dir:lower() })
-      end
+      vim.keymap.set('t', '<C-' .. key .. '>', '<cmd>TmuxNavigate' .. dir .. '<cr>', { buffer = ev.buf, desc = 'Navigate ' .. dir:lower() })
     end
     -- Terminal-mode -> normal mode in one chord instead of <C-\><C-n> (to scroll back, yank, search
     -- the output; `i` goes back in). Ctrl+] because every nearby key is taken: Esc and double-Esc
