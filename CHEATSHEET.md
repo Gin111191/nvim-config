@@ -446,7 +446,8 @@ Claude's popup so you can add your question and send it. Details:
 Every **interactive** Claude running in tmux whose folder is the one Neovim has open, or below it
 (`app/`, a worktree inside the project…), from any window or session — including ones you started
 by hand. `claude -p …` jobs in scripts are left out. Claude in a terminal outside tmux, on another
-machine or in a folder outside the project is not seen.
+machine or in a folder outside the project is not seen. **Background sessions** of the project are
+listed too (`☁`, from `claude agents --json`) — see below.
 
 ```
 ┌─ Claude · job-application-tracker ─────────────────────────────────┐
@@ -458,6 +459,7 @@ machine or in a folder outside the project is not seen.
 │ pane %23, split inside ·claude:…#1 — moves to its own window, …       │  ← you split a stash window
 │ ↪ pane next to Neovim (%19) — jump to it                              │  ← left where it is
 │ ↪ window "mywork" (%21) — jump to it                                  │  ← left where it is
+│ ☁ background  "order-inventory…"  · 3101c4fc  [idle] — attach in a popup│  ← runs in the background
 │ + New Claude                                                           │
 │ + Continue the latest conversation — already open in #1, shows that one│
 │ + Pick an old conversation (claude --resume)                           │
@@ -473,9 +475,18 @@ machine or in a folder outside the project is not seen.
 | A pane you split **inside a stash window** | It gets its own stash window, then opens in the popup (a popup shows a whole window) |
 | A Claude **next to Neovim**, or in any other window of yours with several panes | **Nothing is moved** — the cursor jumps there |
 | `+ New` / `+ Pick an old one` | A new stash window running `claude` / `claude --resume` |
-| `+ Continue the latest conversation` | A new stash window running `claude --continue` — **unless** that conversation is already open in one of the Claudes listed: then the line says so and shows that Claude instead |
+| `☁ background …` | A new stash window running `claude attach <id>`, opened in the popup. Afterwards that window is listed as `#n … ☁ attached to background <id>` and the `☁` line goes away |
+| `+ Continue the latest conversation` | A new stash window running `claude --continue` — **unless** that conversation is already open: in a Claude listed here (shows that one) or in a background session (attaches to it) |
 
 Whatever you pick becomes **the Claude in use** for `Space a c` and the send keys.
+
+**Background session vs Claude in tmux.** A plain `claude` runs *inside* its tmux pane: close the
+pane and it is gone. A background session (`claude --bg`, or one started from Claude's own `←`
+agents view) runs in Claude Code's daemon, outside tmux; a terminal only *looks at* it through
+`claude attach <id>`, and closing that terminal leaves it running. `claude agents` lists them,
+`claude stop <id>` ends one (the conversation is kept). Picking `☁` here is the way in from Neovim —
+no need for `←`, which lists every project's background sessions and switches the conversation
+shown in the window you are in (the popup title would then name the wrong project).
 
 **⚠ same conversation as #n** — two Claudes have **one** conversation open and both write to it,
 so their messages interleave. It happens when `claude --continue` (or `--resume` of the same

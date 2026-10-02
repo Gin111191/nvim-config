@@ -67,13 +67,14 @@ end
 -- pane_pid (usually the shell) is in here, and the value says which claude process.
 local function claude_owners()
   local out = vim.system({ 'ps', '-A', '-o', 'pid=,ppid=,args=' }, { text = true }):wait().stdout or ''
-  local parent, found = {}, {}
+  local parent, found, attach = {}, {}, {}
   for line in out:gmatch '[^\n]+' do
     local pid, ppid, args = line:match '^%s*(%d+)%s+(%d+)%s+(.*)$'
     if pid then
       parent[pid] = ppid
       if interactive_claude(args) then
         found[#found + 1] = pid
+        attach[pid] = args:match '%sattach%s+([%w%-]+)' -- a window onto a background session
       end
     end
   end
@@ -85,7 +86,7 @@ local function claude_owners()
       pid = parent[pid]
     end
   end
-  return owner
+  return owner, attach
 end
 
 local claude_dir = vim.env.CLAUDE_CONFIG_DIR or (vim.env.HOME .. '/.claude')
@@ -96,6 +97,24 @@ local function conversation(pid)
     return vim.json.decode(table.concat(vim.fn.readfile(('%s/sessions/%s.json'):format(claude_dir, pid)), '\n'))
   end)
   return ok and type(data) == 'table' and data.sessionId or nil
+end
+
+-- Background sessions (`claude --bg`, ones started from Claude's ← agents view) of `dir`. They run
+-- in Claude Code's daemon, not in any tmux pane, so the only way in is `claude attach <id>`.
+local function background(dir)
+  local out = vim.system({ 'claude', 'agents', '--json' }, { text = true }):wait()
+  local ok, sessions = pcall(vim.json.decode, out.stdout or '')
+  local ret = {}
+  if out.code ~= 0 or not ok or type(sessions) ~= 'table' then
+    return ret
+  end
+  for _, s in ipairs(sessions) do
+    if s.kind == 'background' and type(s.id) == 'string' and s.id:match '^[%w%-]+$' -- goes into a shell command
+      and type(s.cwd) == 'string' and inside(vim.fs.normalize(s.cwd), dir) then
+      ret[#ret + 1] = s
+    end
+  end
+  return ret
 end
 
 -- The conversation `claude --continue` started in `dir` opens: the newest transcript Claude Code
@@ -122,15 +141,22 @@ local FORMAT = table.concat({
   '#{@claude_project}',
   '#{@claude_n}',
   '#{@claude_stash}',
+  '#{session_name}',
 }, '\t')
 
 -- Every Claude of project `dir` (plus its stash windows sitting at a shell prompt), lowest #n first.
 local function list(dir)
   local here = tmux { 'display-message', '-p', '-t', vim.env.TMUX_PANE, '#{window_id}' }
-  local owner = claude_owners()
-  local items = {}
+  local owner, attach = claude_owners()
+  local items, seen = {}, {}
   for line in (tmux { 'list-panes', '-a', '-F', FORMAT } or ''):gmatch '[^\n]+' do
     local f = vim.split(line, '\t')
+    -- A window shown in a popup is also linked into its claude-view-* session, so list-panes -a
+    -- reports its pane twice; keep the copy in the session it really belongs to.
+    if seen[f[1]] or vim.startswith(f[11] or '', 'claude-view-') then
+      goto continue
+    end
+    seen[f[1]] = true
     local e = {
       pane = f[1],
       session = f[3],
@@ -144,10 +170,12 @@ local function list(dir)
       claude = owner[f[2]] ~= nil,
     }
     e.conversation = e.claude and conversation(owner[f[2]]) or nil
+    e.attach = e.claude and attach[owner[f[2]]] or nil
     if (e.claude and inside(e.cwd, dir)) or (e.project == dir and e.stash) then
       e.side = e.window == here
       items[#items + 1] = e
     end
+    ::continue::
   end
   table.sort(items, function(a, b)
     return (a.n or math.huge) < (b.n or math.huge)
@@ -240,7 +268,8 @@ local function open(e, dir, here)
   popup(e)
 end
 
--- Start a new Claude for `dir` in a stash window. `args` is one of the fixed strings below.
+-- Start a new Claude for `dir` in a stash window. `args` is one of the fixed strings in M.select,
+-- or " attach <id>" with an id checked against [%w-]+ (background()).
 local function create(dir, here, args)
   local session = tmux { 'display-message', '-p', '-t', vim.env.TMUX_PANE, '#{session_id}' }
   local n = next_n(dir)
@@ -303,6 +332,19 @@ function M.select()
   local function ref(e)
     return e.n and e.project == dir and ('#' .. e.n) or e.pane
   end
+  local bg, bg_by_id, bg_by_conversation = background(dir), {}, {}
+  for _, s in ipairs(bg) do
+    bg_by_id[s.id] = s
+    if type(s.sessionId) == 'string' then
+      bg_by_conversation[s.sessionId] = s
+    end
+  end
+  for _, e in ipairs(items) do -- a window attached to a background session shows its conversation
+    local s = e.attach and bg_by_id[e.attach]
+    if s and type(s.sessionId) == 'string' then
+      e.conversation = s.sessionId
+    end
+  end
   -- Two Claudes on one conversation both write to it and interleave their messages (what
   -- `claude --continue` does when the latest conversation is already open): flag it.
   local open_in = {} ---@type table<string, table[]>
@@ -336,19 +378,43 @@ function M.select()
         end
       end
     end
+    if e.attach then
+      label = label .. '  ☁ attached to background ' .. e.attach
+    end
     if e.pane == last then
       label = label .. '  (in use)'
     end
     choices[#choices + 1] = { label = label, entry = e }
   end
+  -- Background sessions no window here is attached to yet: picking one attaches it in a new
+  -- stash window, so from then on Space a c / t / f / v reach it like any other Claude.
+  local attached = {}
+  for _, e in ipairs(items) do
+    if e.attach then
+      attached[e.attach] = true
+    end
+  end
+  for _, s in ipairs(bg) do
+    if not attached[s.id] then
+      local name = type(s.name) == 'string' and s.name ~= s.id and ('"' .. s.name .. '"  ') or ''
+      choices[#choices + 1] = {
+        label = ('☁ background  %s· %s  [%s] — attach in a popup'):format(name, s.id, type(s.status) == 'string' and s.status or '?'),
+        args = ' attach ' .. s.id,
+      }
+    end
+  end
   local latest = latest_conversation(dir)
   local holder = latest and open_in[latest] and open_in[latest][1]
+  local bg_holder = latest and not holder and bg_by_conversation[latest]
+  local continue_choice = { label = '+ Continue the latest conversation (claude --continue)', args = ' --continue' }
+  if holder then
+    continue_choice = { label = ('+ Continue the latest conversation — already open in %s, shows that one'):format(ref(holder)), entry = holder }
+  elseif bg_holder then
+    continue_choice = { label = ('+ Continue the latest conversation — it runs in background %s, attaches to it'):format(bg_holder.id), args = ' attach ' .. bg_holder.id }
+  end
   vim.list_extend(choices, {
     { label = '+ New Claude', args = '' },
-    holder and {
-      label = ('+ Continue the latest conversation — already open in %s, shows that one'):format(ref(holder)),
-      entry = holder,
-    } or { label = '+ Continue the latest conversation (claude --continue)', args = ' --continue' },
+    continue_choice,
     { label = '+ Pick an old conversation (claude --resume)', args = ' --resume' },
   })
   pcall(require, 'telescope') -- loads telescope-ui-select, so vim.ui.select gets a proper picker
