@@ -1,5 +1,6 @@
 require 'core.options' -- Load general options
 require 'core.keymaps' -- Load general keymaps
+require 'core.external-change' -- Show what changed when a file is rewritten by something else
 require 'core.snippets' -- Custom code snippets
 
 -- Set up the Lazy plugin manager

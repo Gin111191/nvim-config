@@ -391,6 +391,7 @@ reading files off disk. See `lua/plugins/claudecode.lua` for the full "how it wo
 | Key | What it does |
 |---|---|
 | `Space + a + c` | Toggle the Claude terminal (opens in a right split, 30% width) |
+| `Ctrl + ]` (inside the Claude terminal) | Leave terminal-mode for normal mode in one chord (was `Ctrl+\` then `Ctrl+n`) — scroll back, search, yank; `i` goes back in |
 | `Space + a + f` | Focus the Claude terminal |
 | `Space + a + r` | `--resume` — pick a past session of this project to continue. `Space+a+c` always starts a NEW session; this is the key for going back to an old one. Safest to exit the old session first (`/exit` in its own terminal) so two processes never write to the same conversation — what happens when it is still running elsewhere is untested. |
 | `Space + a + C` | `--continue` — jump straight into the most recent conversation in this directory, no picker (same advice: exit the old one first) |
@@ -447,12 +448,25 @@ Yank `y` and paste `p` go through the **system clipboard** (`clipboard = 'unname
 
 **Files changed behind Neovim's back** (Claude over the IDE connection, a formatter, git) reload by
 themselves within about a second — a 1 s timer plus `FocusGained`/`CursorHold` run `:checktime`
-(`lua/core/options.lua`), including while the cursor sits in the Claude terminal split. When that
-happens the changed lines flash for 5 s and a **side-by-side diff opens in the window showing the
-file: the text before on the left, after on the right**. Close it with `:q` on the left half (diff
-mode turns itself off). Don't want the split: `vim.g.external_change_split = false`. Only buffers
-loaded before the change are tracked; a manual `:e!` can leave a stale "before" that shows a few
-extra lines on the next change.
+(`lua/core/options.lua`), including while the cursor sits in the Claude terminal split. What you see
+is set by `:ChangeMode` (`lua/core/external-change.lua`):
+
+| Mode | What it looks like |
+|---|---|
+| **`highlight`** (default) | One column: new/changed lines get a green background and a `▎` sign, removed or replaced lines show above as red `- old text` virtual lines. Stays until you save, the file changes again, or `:ChangeClear`. |
+| `split` | Side-by-side diff in the window showing the file: **BEFORE (read-only) left, the real file right**. At most `vim.g.external_change_max_splits` (default 1) at once; a newer one closes the oldest, so many edited files never fill the screen with columns. |
+
+`:ChangeMode split` / `:ChangeMode highlight` switches (and clears what is showing); `:ChangeClear`
+removes highlights and closes the diff splits. In both modes any window showing the file, other
+than the one you are in, scrolls to the first change. Only buffers loaded before the change are
+tracked; a manual `:e!` can leave a stale "before" that shows a few extra lines on the next change.
+
+**Claude opens and shows files by itself.** `~/.claude/hooks/nvim-open.sh` (repo `claude-config`)
+is wired to `PreToolUse`/`PostToolUse` on Edit/Write: it opens the file in the Neovim whose
+workspace contains it — in a code window, never the Claude terminal, without moving your focus —
+*before* the edit (so Neovim has the old text to diff against) and re-reads it right after. Claude
+runs `nvim-open.sh open <path>[:line]` when you ask to see a file. Needs the claudecode.nvim server
+running (`Space+a+c` once, or `:ClaudeCodeStart`); with no matching Neovim it silently does nothing.
 
 ⚠️ `:source %` is honest only for plain options and keymaps. A plugin spec in `lua/plugins/` will
 not fully re-apply that way — quit and reopen Neovim for those.

@@ -98,6 +98,12 @@ vim.api.nvim_create_autocmd('TermOpen', {
     for key, dir in pairs(dirs) do
       vim.keymap.set('t', '<C-' .. key .. '>', '<cmd>TmuxNavigate' .. dir .. '<cr>', { buffer = ev.buf, desc = 'Navigate ' .. dir:lower() })
     end
+    -- Terminal-mode -> normal mode in one chord instead of <C-\><C-n> (to scroll back, yank, search
+    -- the output; `i` goes back in). Ctrl+] because every nearby key is taken: Esc and double-Esc
+    -- belong to claude (interrupt / rewind), Ctrl+q and Ctrl+s are quit and save in normal mode,
+    -- Ctrl+g is claude's "edit prompt in $EDITOR", Alt+key needs the terminal to send Option as
+    -- Meta (Ghostty does not by default). Ctrl+] is unused in nvim, tmux, zsh, Ghostty and Kitty.
+    vim.keymap.set('t', '<C-]>', [[<C-\><C-n>]], { buffer = ev.buf, desc = 'Terminal-mode -> normal mode' })
   end,
 })
 
