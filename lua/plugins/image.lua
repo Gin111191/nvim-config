@@ -79,14 +79,16 @@ return {
     },
   },
   config = function(_, opts)
-    -- Inside tmux, snacks cannot see kitty: its XTVERSION query is answered by tmux, so it
-    -- finds no graphics terminal and draws nothing. tmux itself knows which terminal the
-    -- attached client is — snacks asks the same thing when extended-keys is on — and unlike
-    -- an environment variable the answer is current even in a pane that predates the attach
-    -- (ssh in, `tmux attach`). Only a kitty client sets it, so other terminals get no escapes.
+    -- Inside tmux, snacks cannot see kitty (or Ghostty): its XTVERSION query is answered by
+    -- tmux, so it finds no graphics terminal and draws nothing. tmux itself knows which
+    -- terminal the attached client is — snacks asks the same thing when extended-keys is on —
+    -- and unlike an environment variable the answer is current even in a pane that predates
+    -- the attach (ssh in, `tmux attach`). Only a kitty-protocol client sets it (kitty itself,
+    -- or Ghostty, which also speaks the Kitty graphics protocol), so other terminals still
+    -- get no escapes.
     if vim.env.TMUX and not vim.env.SNACKS_KITTY then
       local client = vim.fn.system { 'tmux', 'display-message', '-p', '#{client_termname}' }
-      if vim.v.shell_error == 0 and client:find('kitty', 1, true) then
+      if vim.v.shell_error == 0 and (client:find('kitty', 1, true) or client:find('ghostty', 1, true)) then
         vim.env.SNACKS_KITTY = '1'
       end
     end
