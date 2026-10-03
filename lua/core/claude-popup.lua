@@ -213,8 +213,9 @@ local function remember(dir, here, pane)
   tmux { 'set-option', '-w', '-t', here, last_option(dir), pane }
 end
 
--- Show e's window in a 90% popup over this client.
-local function popup(e)
+-- Show e's window in a 90% popup over this client, as the "float" of working window `here`.
+-- Keep in step with show() in tmux-config's claude-window.sh, which reopens it on Shift+←/→/↑.
+local function popup(e, here)
   for line in (tmux { 'list-sessions', '-F', '#{session_name}\t#{session_attached}' } or ''):gmatch '[^\n]+' do
     local name, attached = line:match '^(claude%-view%-.-)\t(%d+)$'
     if name and attached == '0' then -- left over from a popup that never attached
@@ -231,9 +232,14 @@ local function popup(e)
   tmux { 'set-option', '-t', view, 'status', 'off' }
   -- if the Claude window goes away while shown, close the popup instead of jumping to another session
   tmux { 'set-option', '-t', view, 'detach-on-destroy', 'on' }
-  -- where Shift+←/→ pressed inside the popup should move (tmux-config's claude-window.sh)
+  -- for Shift+←/→/↑/↓ inside the popup (tmux-config's claude-window.sh): the working session, the
+  -- client the popup is drawn on, and this window's float — open, showing this Claude
   local origin = tmux { 'display-message', '-p', '-t', vim.env.TMUX_PANE, '#{session_id}' }
+  local client = tmux { 'display-message', '-p', '-t', vim.env.TMUX_PANE, '#{client_name}' }
   tmux { 'set-option', '-t', view, '@claude_origin', origin }
+  tmux { 'set-option', '-t', view, '@claude_client', client }
+  tmux { 'set-option', '-w', '-t', here, '@claude_float', '1' }
+  tmux { 'set-option', '-w', '-t', here, '@claude_float_pane', e.pane }
   tmux { 'select-pane', '-t', e.pane }
   local title = (' Claude · %s #%s '):format(vim.fs.basename(e.project ~= '' and e.project or e.cwd), e.n or '?')
   -- -S: same server as this Neovim's (TMUX is unset inside to avoid the "nested" refusal)
@@ -265,7 +271,7 @@ local function open(e, dir, here)
   if e.project ~= dir or not e.stash then
     adopt(e, dir)
   end
-  popup(e)
+  popup(e, here)
 end
 
 -- Start a new Claude for `dir` in a stash window. `args` is one of the fixed strings in M.select,

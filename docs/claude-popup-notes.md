@@ -54,6 +54,9 @@ Option tmux mà module dùng:
 | `@claude_stash` | window | Window này là window cất giữ Claude (Shift+←/→ bỏ qua) |
 | `@claude_last_<hash>` | window chứa Neovim | Pane của "Claude đang dùng" cho project đó trong window này |
 | `@claude_origin` | session `claude-view-*` | Session gốc khi popup mở |
+| `@claude_client` | session `claude-view-*` | Client (terminal) mà popup đang vẽ lên — để mở lại popup đúng chỗ khi chuyển window |
+| `@claude_float` | window làm việc | `1` khi khung nổi của window đó đang mở (xem §11) |
+| `@claude_float_pane` | window làm việc | Pane Claude mà khung nổi của window đó hiện |
 | `@tmux_config_dir` | global | Thư mục chứa `tmux.conf` (để tìm `claude-window.sh`) |
 
 ## 4. Module nhận diện Claude thế nào
@@ -109,6 +112,8 @@ Option tmux mà module dùng:
 | Màn hình Claude cũ + dấu nhắc zsh bên dưới | Kill Claude ở renderer classic → chữ cũ còn trên màn hình | `clear` / `Ctrl+l` |
 | `Esc` ở `claude --resume` để lại window rỗng | Window tạo trước khi chọn | Bộ chọn trong Neovim |
 | (Khi thử) script chạy vào tmux thật | Gọi script ngoài tmux, thiếu `TMUX` → server mặc định | Luôn `export TMUX=<socket test>,0,0` khi thử |
+| Shift+←/→ mở lại khung với pane Claude đã chết | `tmux display-message -t <pane không còn>` vẫn trả exit 0 | Kiểm tra pane bằng `list-panes -a` |
+| (Khi thử) Neovim không mở được socket `--listen` | Đường dẫn socket > ~104 ký tự (giới hạn macOS) | Thử bằng socket mặc định qua file đăng ký, như script thật |
 
 ## 7. Giới hạn còn lại
 
@@ -158,3 +163,47 @@ cat ~/.cache/nvim-claude/*.json
 - Bật lại agents view: xoá `"disableAgentView": true` trong `~/.claude/settings.json`.
 - Về claudecode.nvim: trong nvim-config `git revert` các commit từ `879d9ec` tới `05fe770` (hoặc
   checkout `f7d5847`), rồi `:Lazy restore` + `:Lazy clean`.
+
+## 11. Khung nổi riêng cho từng window (kế hoạch 2026-10-03 — đã làm, đã thử)
+
+**Yêu cầu**
+1. Mỗi window tmux có khung nổi (popup Claude) **của riêng nó**: mở hay đóng, hiện Claude nào.
+2. Shift+←/→ chuyển window; khung của window mới mở/đóng **đúng trạng thái đã ghi của window đó**
+   — không để khung của A nổi trên B, không lẫn Claude giữa các window.
+3. Shift+↑ = mở khung của window hiện tại. Shift+↓ = đóng khung (Claude vẫn chạy).
+
+**Cách làm**
+- popup tmux gắn theo *client* (terminal đang xem), không theo window → mỗi window tự **ghi trạng
+  thái** bằng option tmux:
+  - `@claude_float` = `1` khi khung của window đó đang mở (không có = đóng)
+  - `@claude_float_pane` = pane Claude mà khung của window đó hiện
+- `claude-window.sh` (tmux-config) thêm hai lệnh `open` / `close` bên cạnh `prev` / `next`:
+  - `open`: window có `@claude_float_pane` còn sống → mở popup của nó, ghi `@claude_float 1`.
+    Chưa có → nhờ Neovim trong window đó (RPC tới socket của nó) làm như `Space a c`.
+    Không có Neovim → báo trên thanh trạng thái.
+  - `close`: đóng popup, xoá `@claude_float` của window.
+  - `prev` / `next`: đang trong popup thì đóng popup **nhưng giữ** trạng thái; chuyển window (bỏ
+    qua `·claude:…`); window mới có `@claude_float 1` và pane còn sống → mở lại popup của nó.
+- `tmux.conf`: `Shift+↑` → `open` (mọi nơi; Neovim mất phím cuộn-lên-một-trang mặc định).
+  `Shift+↓` → `close` khi đang trong popup, ngoài popup thì chuyển phím cho ứng dụng.
+  `Prefix + d` trong popup → `close` (ghi đóng); ngoài popup vẫn là detach như cũ.
+- `claude-popup.lua`: mỗi lần tự mở popup thì ghi `@claude_float 1` + `@claude_float_pane` lên
+  window chứa Neovim, và ghi client ngoài (`@claude_client`) lên session tạm để script biết mở lại
+  popup trên client nào khi chuyển window từ trong popup.
+- Claude trong khung thoát hẳn (window chết) → pane không còn → window đó coi như "đóng".
+
+**Kiểm thử** (tmux server riêng nạp đúng `tmux.conf` thật, 2 window làm việc + 2 Claude giả) —
+tất cả **đạt**:
+
+| # | Thao tác | Kết quả |
+|---|---|---|
+| 1 | A: Shift+↑ | Khung mở, hiện Claude A |
+| 2 | Trong khung: Shift+→ | Sang B; khung đóng (B đang đóng); A vẫn ghi "mở" |
+| 3 | B: Shift+← | Về A; khung tự mở lại đúng Claude A |
+| 4 | Trong khung: Shift+↓ | Khung đóng; A ghi "đóng" |
+| 5 | Shift+→ rồi Shift+← | Về A; khung **không** tự mở |
+| 6–8 | Mở khung ở B, chuyển qua lại A ↔ B | Mỗi window đúng trạng thái của nó, B luôn hiện Claude B |
+| 9–10 | Claude của A chết | Khung đóng ngay; lần sau ghé A, A tự về "đóng" |
+| 11 | Shift+↑ ở window không có Claude, không có Neovim | Chỉ báo, không mở gì |
+| — | Shift+↑ ở window có Neovim nhưng chưa ghi Claude | Neovim của window đó được gọi `toggle()` (= `Space a c`) |
+| — | `Space a c` | Ghi `@claude_float=1`, `@claude_float_pane`; session popup có `@claude_client`, `@claude_origin` |

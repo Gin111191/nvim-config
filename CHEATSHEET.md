@@ -416,6 +416,7 @@ shell: `/exit` drops you to the shell prompt (in the same popup), where any `cla
 | Key | What it does |
 |---|---|
 | **`Space + a + c`** | **Open the Claude in use** for this project in the popup — starts one if there is none |
+| **`Shift + ↑`** | The same from anywhere in the window (a tmux key, tmux-config): opens the float this window had |
 | `Space + a + s` | **List every Claude of this project** and pick one, or start a new one (below) |
 | `Space + a + t` | Send this **line** as `@file#L42` (visual: these **lines**, `@file#L10-20`) |
 | `Space + a + f` | Send this **file** as `@file` |
@@ -436,13 +437,35 @@ Claude's popup so you can add your question and send it. Details:
 
 | Key | What it does |
 |---|---|
-| **`Ctrl + b` then `d`** | **Hide the popup** — Claude keeps running in its window |
+| **`Shift + ↓`** (or `Ctrl + b` then `d`) | **Close the float** — Claude keeps running in its window |
 | `Ctrl + b` then `[` | Scroll back (tmux copy mode; `q` to leave) |
-| `Shift + ←` / `Shift + →` | Close the popup and go to the previous / next window underneath |
+| `Shift + ←` / `Shift + →` | Go to the previous / next window; the float follows (below) |
 | `/exit` (in Claude) | Quit Claude → you are at a shell prompt, still in the popup |
 | `claude --resume` / `claude -c` / `claude --model …` (at that prompt) | Start Claude again any way you like |
 | `exit` (at that prompt) | Close the shell → the window and the popup close for good |
 | `/resume`, `/model` (in Claude) | Switch conversation / model without leaving Claude |
+
+### Each window keeps its own float
+
+A tmux popup belongs to the terminal, not to a window, so each working window **records its own
+float** (window options `@claude_float`, `@claude_float_pane`) and the keys keep the popup in step
+with the window on screen (tmux-config's `claude-window.sh`):
+
+```
+window A: float OPEN (Claude A)      window B: float CLOSED      window C: float OPEN (Claude C)
+   Shift+→  ─►  B: the float closes
+   Shift+→  ─►  C: the float opens again, showing Claude C
+   Shift+←  ─►  B: closes  ·  Shift+← ─► A: opens, showing Claude A
+```
+
+| Key | What it does |
+|---|---|
+| `Shift + ↑` | Open this window's float. None recorded yet: Neovim in the window does `Space a c` |
+| `Shift + ↓` / `Ctrl+b d` | Close it, and record it closed — Shift+←/→ will not bring it back |
+| `Shift + ←/→` | Move; the float of the window you arrive at opens if it was left open |
+
+A window whose Claude has quit counts as closed. `Prefix + n/p` and `Alt + <n>` switch windows
+without touching the float.
 
 ### `Space a s` — the list
 
