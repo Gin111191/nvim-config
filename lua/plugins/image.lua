@@ -75,6 +75,7 @@ return {
       -- of the code every time the cursor crossed an <Image src="...">. <leader>ti turns it
       -- on for the current buffer instead (see config below). inline/float stay set because
       -- that toggle reads them.
+      -- max_width / max_height are only the start: config below sets them to 80% of the window (fit_doc).
       doc = { enabled = false, inline = false, float = true, max_width = 60, max_height = 30 },
     },
   },
@@ -93,6 +94,17 @@ return {
       end
     end
     require('snacks').setup(opts)
+    -- The image float follows the Neovim window, not the fixed 60x30 cells above: 80% of its columns and lines, worked
+    -- out again on every resize (a tmux pane dragged larger gives a larger float). snacks reads config.doc each time it
+    -- opens the float (doc.lua) and caps the image with these two numbers (placement.lua minmax), keeping its aspect.
+    -- Gin, 2026-10-04: the float was too small — "có sửa dựa theo screen size của ghostty được không?". Only Neovim's
+    -- own grid can be drawn on, so a pane that holds half the screen gives 80% of that half.
+    local function fit_doc()
+      Snacks.image.config.doc.max_width = math.floor(vim.o.columns * 0.8)
+      Snacks.image.config.doc.max_height = math.floor(vim.o.lines * 0.8)
+    end
+    fit_doc()
+    vim.api.nvim_create_autocmd('VimResized', { callback = fit_doc })
     -- Upstream bug folke/snacks.nvim#2896 (closed as stale, not fixed): leaving an image
     -- buffer sets its placement `hidden`, and nothing clears it on return, so going back
     -- to an image already open (:b#, bufferline, neo-tree) shows a blank buffer. The

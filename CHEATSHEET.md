@@ -809,6 +809,8 @@ An image referenced inside a file (`<Image src="/x.png">` in tsx, `![](x.png)` i
 in html, `url()` in css…) used to pop up in a float whenever the cursor crossed it, which covered
 the code in `.tsx` files. It is now **off** (`doc.enabled = false` in `lua/plugins/image.lua`);
 `Space + t + i` switches it on for **the buffer you are in**, and again to switch it off.
+The float is sized to **80% of the Neovim window** (columns and lines, worked out again on every resize — `fit_doc` in
+`lua/plugins/image.lua`): drag the tmux pane larger and the next float is larger. Change `0.8` there for another share.
 
 - Per buffer, not global: turning it on in `page.tsx` does not touch other files.
 - Opening an image file itself (`:e photo.png`, or a pick from `Space + s + m`) is unaffected —
