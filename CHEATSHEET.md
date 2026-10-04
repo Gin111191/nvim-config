@@ -408,7 +408,7 @@ tmux session (the one you work in)
 
 Each Claude lives in a **window of its own** in your session, named `·claude:<project>#<n>` — the
 "stash window". You see them in the status bar and in `Prefix + w`; `Shift + ←/→` skips them
-(tmux-config's `claude-window.sh`), `Prefix + n/p` and `Alt + <n>` do not. Inside it, Claude runs in your
+(tmux-config's `claude-window.sh`; `Prefix + S` toggles that), `Prefix + n/p` and `Alt + <n>` do not. Inside it, Claude runs in your
 shell: `/exit` drops you to the shell prompt (in the same popup), where any `claude …` command works.
 
 ### Keys in Neovim
@@ -463,9 +463,12 @@ window A: float OPEN (Claude A)      window B: float CLOSED      window C: float
 | `Shift + ↑` | Open this window's float. None recorded yet: Neovim in the window does `Space a c` |
 | `Shift + ↓` / `Ctrl+b d` | Close it, and record it closed — Shift+←/→ will not bring it back |
 | `Shift + ←/→` | Move; the float of the window you arrive at opens if it was left open |
+| `Prefix + S` | Toggle whether `Shift + ←/→` also stops at the `·claude:…` windows (whole tmux, starts at "skip") |
 
 A window whose Claude has quit counts as closed. `Prefix + n/p` and `Alt + <n>` switch windows
-without touching the float.
+without touching the float. With the `·claude:…` windows included, landing on one shows that Claude
+full-window — it is a Claude window, so no float opens over it — and the floats of your working
+windows follow them exactly as before.
 
 ### `Space a s` — the list
 

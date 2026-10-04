@@ -58,6 +58,7 @@ Option tmux mà module dùng:
 | `@claude_float` | window làm việc | `1` khi khung nổi của window đó đang mở (xem §11) |
 | `@claude_float_pane` | window làm việc | Pane Claude mà khung nổi của window đó hiện |
 | `@tmux_config_dir` | global | Thư mục chứa `tmux.conf` (để tìm `claude-window.sh`) |
+| `@claude_skip` | global | `off` = Shift+←/→ dừng cả ở window `·claude:…`; không có / `on` = bỏ qua (xem §12) |
 
 ## 4. Module nhận diện Claude thế nào
 
@@ -207,3 +208,27 @@ tất cả **đạt**:
 | 11 | Shift+↑ ở window không có Claude, không có Neovim | Chỉ báo, không mở gì |
 | — | Shift+↑ ở window có Neovim nhưng chưa ghi Claude | Neovim của window đó được gọi `toggle()` (= `Space a c`) |
 | — | `Space a c` | Ghi `@claude_float=1`, `@claude_float_pane`; session popup có `@claude_client`, `@claude_origin` |
+
+## 12. Bật/tắt bỏ qua window Claude khi Shift+←/→ (2026-10-04 — đã làm, đã thử)
+
+- **Phím `Prefix + S`** (S = Skip): đảo option toàn cục `@claude_skip` (`off` ↔ `on`), hiện thông
+  báo trên thanh trạng thái. Áp dụng cho cả tmux server. Không lưu lại: tmux server mới luôn ở
+  "bỏ qua" (option chưa đặt = bỏ qua).
+- **Vì sao chọn `S`**: rà toàn bộ bảng phím prefix — còn trống trong tmux 3.7c, **không** nằm trong
+  các phím mặc định mới của tmux 3.8 (`' " { } ~ T` và bảng `g` bị loại), không trùng tpm (`I`,
+  `U`). Phím không prefix (`Alt+…`) bị loại: Ghostty chưa bật `macos-option-as-alt` (Option gõ
+  ra ký tự đặc biệt), Claude Code dùng `Alt+p/o/t/w`, zsh dùng `Alt+c`.
+- **Khi đang "include"**: window `·claude:…` là một điểm dừng như mọi window, hiện thẳng Claude toàn
+  màn hình; không mở khung nổi chồng lên (nó chính là Claude). Khung nổi của các window làm việc
+  vẫn đi theo đúng như §11.
+- Cài đặt: `bind S if -F '#{==:#{@claude_skip},off}' …` trong `tmux.conf`; `claude-window.sh` đọc
+  `@claude_skip` trước khi chọn window kế.
+
+**Kiểm thử** (tmux server riêng, `tmux.conf` thật, window A, B, `·claude:pA#1`, `·claude:pB#1`) — đạt:
+
+| Chế độ | Shift+→ / Shift+← | Kết quả |
+|---|---|---|
+| Mặc định (bỏ qua) | → → ← ← | A → B → A → B → A |
+| `Prefix + S` → include | → → → → ← | A → B → ·claude:pA#1 → ·claude:pB#1 → A → ·claude:pB#1 |
+| Include, khung A mở | → → → → | A[khung] → B → ·claude:pA#1 → ·claude:pB#1 → A[khung] |
+| `Prefix + S` → bỏ qua lại | → → | A[khung] → B → A[khung] |
