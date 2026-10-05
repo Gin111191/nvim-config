@@ -633,6 +633,10 @@ unchanged.
 | `Ctrl+d` / `Ctrl+u` | Scroll half a page, **re-centring automatically** |
 | `n` / `N` | Next match, **re-centring automatically** |
 | `x` | Delete 1 character, **without overwriting the clipboard** |
+| `d` `c` `D` `C` | Delete / change **without copying** — only an explicit `y` touches the clipboard |
+| **`X`** + a motion | **Cut** = yank + delete in one go, into the system clipboard: `Xw` a word, `Xd` a line, `Xip` a paragraph |
+| `XX` | Cut the whole current line |
+| `X` (visual) | Cut the selection |
 | `<` `>` (visual) | Indent, **keeping the selection** |
 | `p` (visual) | Paste **without losing what was copied** |
 | `Space + w` | Toggle line wrapping |
