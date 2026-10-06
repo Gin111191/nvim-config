@@ -117,7 +117,7 @@ return {
         if client and client.name == 'eslint' then
           vim.api.nvim_create_autocmd('BufWritePre', {
             buffer = event.buf,
-            command = 'EslintFixAll',
+            command = 'LspEslintFixAll',
           })
         end
       end,
