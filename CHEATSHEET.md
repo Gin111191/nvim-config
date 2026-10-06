@@ -637,6 +637,7 @@ unchanged.
 | **`X`** + a motion | **Cut** = yank + delete in one go, into the system clipboard: `Xw` a word, `Xd` a line, `Xip` a paragraph |
 | `XX` | Cut the whole current line |
 | `X` (visual) | Cut the selection |
+| `)` | Go to the **end of the line**, same as `$` (also in Visual and after an operator: `y)`, `X)`). The sentence jump it used to be is gone |
 | `<` `>` (visual) | Indent, **keeping the selection** |
 | `p` (visual) | Paste **without losing what was copied** |
 | `Space + w` | Toggle line wrapping |
