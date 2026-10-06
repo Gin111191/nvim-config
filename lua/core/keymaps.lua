@@ -28,6 +28,9 @@ vim.keymap.set('n', 'C', '"_C', opts)
 vim.keymap.set({ 'n', 'v' }, 'X', '"+d', opts)
 vim.keymap.set('n', 'XX', '"+dd', opts)
 
+-- ) = $ (end of line); easier to reach, and the sentence motion is rarely used
+vim.keymap.set({ 'n', 'v', 'o' }, ')', '$', opts)
+
 -- Vertical scroll and center
 vim.keymap.set('n', '<C-d>', '<C-d>zz', opts)
 vim.keymap.set('n', '<C-u>', '<C-u>zz', opts)
