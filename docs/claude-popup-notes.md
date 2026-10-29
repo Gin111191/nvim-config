@@ -24,7 +24,7 @@ gì, hỏng ở đâu, và cách kiểm tra/khắc phục khi có chuyện.
 | nvim-config | `lua/core/external-change.lua` | Highlight chỗ Claude sửa, đóng buffer hook mở (`close_opened`) |
 | nvim-config | `lua/plugins/codediff.lua` | codediff.nvim, `Space g d/f/h/H`, `auto_open_on_cursor` |
 | tmux-config | `claude-window.sh` + `tmux.conf` | Shift+←/→ bỏ qua window `·claude:…`; trong popup thì đóng popup rồi nhảy |
-| claude-config | `hooks/nvim-open.sh` | Hook Edit/Write: mở file trong Neovim của project, highlight; `done` khi Stop |
+| claude-config | `hooks/nvim-open.sh` | Hook Edit/Write: mở file trong Neovim của project (chỉ khi `Space t c` bật, mặc định tắt), highlight; `done` khi Stop |
 | claude-config | `settings.json` | `"tui": "default"` (renderer classic), `"disableAgentView": true` |
 | zsh | `claude/CLAUDE.md` | Luật toàn cục: hiện file/diff trong Neovim thay vì chat |
 

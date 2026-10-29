@@ -170,7 +170,13 @@ vim.api.nvim_create_autocmd('FileChangedShellPost', {
 -- first ordinary code window, else in a new split on the left. Never in a terminal (the Claude
 -- split) — an :edit there replaced the chat, which is the bug this guards against. Called by
 -- ~/.claude/hooks/nvim-open.sh over the RPC socket.
-function M.open(path, line)
+-- `auto`: the Edit/Write hooks' call (an agent changing a file) — opened only while following is on
+-- (Space t c, off in every new Neovim). A file Claude is asked to show (`nvim-open.sh open`, a shot)
+-- opens either way. Gin, 2026-10-29.
+function M.open(path, line, auto)
+  if auto and not vim.g.claude_follow then
+    return
+  end
   path = vim.fn.fnamemodify(path, ':p')
   local buf = vim.fn.bufnr(path)
   local was_loaded = buf > 0 and vim.api.nvim_buf_is_loaded(buf)
@@ -249,5 +255,11 @@ end, {
 })
 
 vim.g.external_change_mode = vim.g.external_change_mode or 'highlight'
+
+-- Space t c: follow an agent's edits (the file it changes opens here) or not. Off when Neovim starts.
+vim.keymap.set('n', '<leader>tc', function()
+  vim.g.claude_follow = not vim.g.claude_follow
+  vim.notify('Claude follow: ' .. (vim.g.claude_follow and 'on — files Claude edits open here' or 'off'))
+end, { desc = '[T]oggle [C]laude follow (open the files Claude edits)' })
 
 return M

@@ -421,6 +421,7 @@ shell: `/exit` drops you to the shell prompt (in the same popup), where any `cla
 | `Space + a + t` | Send this **line** as `@file#L42` (visual: these **lines**, `@file#L10-20`) |
 | `Space + a + f` | Send this **file** as `@file` |
 | `Space + a + v` (visual) | Send the selected **text** itself |
+| **`Space + t + c`** | **Follow Claude on / off**: while on, each file Claude (or an agent) edits opens here with its change highlighted. **Off** in every new Neovim; a file you ask Claude to show you, or a screenshot, opens either way |
 
 **Sending** (`t` / `f` / `v`) pastes into Claude's input **without pressing Enter**, then opens that
 Claude's popup so you can add your question and send it. Details:
